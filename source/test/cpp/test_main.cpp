@@ -5,13 +5,7 @@
 #include "xbase\x_console.h"
 
 UNITTEST_SUITE_LIST(xHashUnitTest);
-UNITTEST_SUITE_DECLARE(xHashUnitTest, xcrc);
-UNITTEST_SUITE_DECLARE(xHashUnitTest, xmd5);
-UNITTEST_SUITE_DECLARE(xHashUnitTest, xsha1);
-UNITTEST_SUITE_DECLARE(xHashUnitTest, xskein);
-UNITTEST_SUITE_DECLARE(xHashUnitTest, xuuid);
-UNITTEST_SUITE_DECLARE(xHashUnitTest, xhash32);
-UNITTEST_SUITE_DECLARE(xHashUnitTest, xhash64);
+UNITTEST_SUITE_DECLARE(xHashUnitTest, xaddress);
 
 class UnitTestAllocator : public UnitTest::Allocator
 {
@@ -46,7 +40,7 @@ bool gRunUnitTest(UnitTest::TestReporter& reporter)
 	UnitTestAllocator unittestAllocator( xcore::gCreateSystemAllocator() );
 	UnitTest::SetAllocator(&unittestAllocator);
 
-	xcore::xconsole::addDefault();
+	xcore::xconsole::add_default_console();
 
 	int r = UNITTEST_SUITE_RUN(reporter, xHashUnitTest);
 	if (unittestAllocator.mNumAllocations!=0)
