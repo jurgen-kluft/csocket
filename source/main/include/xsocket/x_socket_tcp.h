@@ -13,110 +13,45 @@ namespace xcore
 	class xsock_addresses;
 	class xsock_tcp;
 
-	class xsock_tcp_factory
-	{
-	public:
-		virtual void	create_tcp(xsock_tcp*& ) = 0;
-		virtual void	destroy_tcp(xsock_tcp* ) = 0;
-	};
+	// ------------------------------------------------------------------------------------------
+	// TCP API - IPv4
+	// ------------------------------------------------------------------------------------------
+	typedef		void*		xsscontext;
+	typedef		void*		xssaddress;
+	typedef		void*		xsssocket;
+	typedef		void*		xsslisten;
+	typedef		void*		xsspoller;
+	typedef		u32			xssipv4;
+	typedef		u16			xssport;
+	typedef		s32			xssstate;
+	
+	xsscontext	context_create_ipv4(x_iallocator*, u32 max_sockets);
+	void		context_destroy(xsscontext);
 
-	// Base class representing basic communication endpoint
-	class xsock_tcp
-	{
-	public:
-		xsock_tcp();
+	xssaddress	to_address(const char* ip, xssport port);
+	xssaddress	to_address(xssipv4 ip, xssport port);
 
-		/**
-		*   @return true if socket has valid descriptor
-		*/
-		bool valid() const;
+	xsssocket	connect(xsscontext, xssaddress);
+	xssaddress	get_address(xsssocket);
+	void		disconnect(xsssocket);
+	void		close(xsssocket);
 
-		/**
-		*   Construct a UDP socket with the given local port and address
-		*   @param localAddress local address
-		*   @param localPort local port
-		*/
-		void connect(xsock_address const * );
+	void		set_non_blocking(xsssocket);
 
-		/**
-		*   Unset foreign address and port
-		*   @return true if disassociation is successful
-		*/
-		void disconnect();
+	bool		is_connecting(xsssocket);
+	bool		is_connected(xsssocket);
 
-		/**
-		*   Send the given buffer 
-		*   @param buffer buffer to be written
-		*   @param bufferLen number of bytes to write
-		*   @return true if send is successful
-		*/
-		void send(const void *buffer, s32 bufferLen);
+	s32			send(xsssocket, xbyte* buffer, u32 len);
+	s32			recv(xsssocket, xbyte* buffer, u32& len);
 
-		/**
-		*   Read read up to bufferLen bytes data from this socket.
-		The given buffer is where the data will be placed.
-		*   @param buffer buffer to receive data
-		*   @param bufferLen maximum number of bytes to receive
-		*   @return number of bytes received and -1 for error
-		*/
-		s32 recv(void *buffer, s32 bufferLen);
+	xsslisten	listen(xsscontext, xssport);
+	xsssocket	accept(xsslisten, u32 timeout_us);
+	void		close(xsslisten);
 
-		/**
-		*   Return the remote address
-		*   @param multicastTTL multicast TTL
-		*/
-		bool getRemoteAddress(xsock_address const*&);
-
-
-	private:
-		// Prevent the user from trying to use value semantics on this object
-				xsock_tcp(const xsock_tcp &sock);
-				~xsock_tcp();
-
-		void	operator=(const xsock_tcp &sock);
-
-	protected:
-		s32				m_socket_descriptor;
-
-				xsock_tcp(s32 descriptor);
-
-		bool open_socket(s32 type, s32 protocol);
-	};
-
-	// TCP 'listening' socket class for incoming connections
-	class xsock_tcp_listen
-	{
-	public:
-		/**
-		 *   Construct a TCP socket for use with a server, accepting connections
-		 *   on the specified port on the interface specified by the given address
-		 *   @param localAddress local interface (address) of server socket
-		 *   @param localPort local port of server socket
-		 *   @param queueLen maximum queue length for outstanding
-		 *                   connection requests (default 5)
-		 *   @exception SocketException thrown if unable to create TCP server socket
-		 */
-		xsock_tcp_listen(xsock_addresses* addresses, xsock_tcp_factory* socket_factory);
-
-		/**
-		 *   Create the listening socket 
-		 *   @return true if socket has been created succesfully
-		 */
-		bool	start(xsock_address const *, u32 queueLen = 5);
-
-		/**
-		 *   Blocks until a new connection is established on this socket or error
-		 *   @return new connection socket
-		 */
-		xsock_tcp *	accept();
-
-	private:
-		u32					m_queue_len;
-		s32					m_socket_descriptor;
-		x_iallocator*		m_allocator;
-		xsock_addresses*	m_addresses;
-		xsock_tcp_factory*	m_socket_tcp_factory;
-	};
+	xsspoller	poller_create(xsscontext, u32 max_sockets);
+	void		poller_destroy(xsspoller);
+	void		poller_poll(xsspoller* p, xsssocket* readers, u32 num_readers, xsssocket* writers, u32 num_writers, u32 timeout_us);
+	bool		poller_read(xsspoller* p, xsssocket, bool& can_read, bool& can_write, bool& has_error);
 
 }
 

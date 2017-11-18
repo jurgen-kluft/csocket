@@ -74,18 +74,18 @@ namespace xcore
 			m_mask = (m_size - 1);
 		}
 
-		virtual xsock_hash		compute_hash(void const* addrin, u32 addrinlen)
+		virtual xsock_hash		compute_hash(void const* data, u32 len)
 		{
 			xsock_hash hash;
 			m_hasher.reset();
-			m_hasher.update((const u8*)addrin, addrinlen);
+			m_hasher.update(data, len);
 			m_hasher.digest((xbyte*)hash.m_hash);
 			return hash;
 		}
 
 		virtual xsock_address*	create(xsock_addrin const& a)
 		{
-			xsock_hash hash = compute_hash(a.m_data, sizeof(a.m_data));
+			xsock_hash hash = compute_hash((const u8*)&a, sizeof(xsock_addrin));
 			xsock_haddress* h = find_by_hash(hash);
 			if (h == nullptr)
 			{

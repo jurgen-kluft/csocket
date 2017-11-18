@@ -14,10 +14,13 @@ namespace xcore
 	{
 		u32		m_len;
 		u8		m_data[64];
+		u8		m_family;
+		u8		m_socktype;
+		u8		m_protocol;
+		u8		m_dummy1;
 
-		bool	construct(char* address, u16 port, u8 family, u8 socktype, u8 protocol);
-		bool	construct_udp(char* address, u16 port);
-		bool	construct_tcp(char* address, u16 port);
+		bool	resolve_udp(char* address, u16 port);
+		bool	resolve_tcp(char* address, u16 port);
 
 		s32		to_string(char* str, u32 maxstrlen) const;
 	};
@@ -65,7 +68,7 @@ namespace xcore
 	class xsock_ihashing
 	{
 	public:
-		virtual xsock_hash		compute_hash(void* addrin, u32 addrinlen) = 0;
+		virtual xsock_hash		compute_hash(void* data, u32 len) = 0;
 	};
 
 	// --------------------------------------------------------------------------------------------
@@ -73,7 +76,7 @@ namespace xcore
 	class xsock_addresses : public xsock_iaddress_factory, public xsock_iaddrin2address, public xsock_iaddress2idx, public xsock_ihashing
 	{
 	public:
-		virtual xsock_address*	create(void* addrin, u32 addrinlen);
+		virtual xsock_address*	create(xsock_address const& manual_address);
 		virtual void			destroy(xsock_address*);
 
 		virtual	bool			get_assoc(void* addrin, u32 addrinlen, xsock_address*& assoc);
@@ -90,7 +93,7 @@ namespace xcore
 		void					operator delete(void* mem) { }
 
 	private:
-		virtual xsock_hash		compute_hash(void* addrin, u32 addrinlen);
+		virtual xsock_hash		compute_hash(void* data, u32 len);
 	};
 
 }
