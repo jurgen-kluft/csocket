@@ -17,7 +17,6 @@ namespace xcore
 	// TCP API - IPv4
 	// ------------------------------------------------------------------------------------------
 	typedef		void*		xsscontext;
-	typedef		void*		xssaddress;
 	typedef		void*		xsssocket;
 	typedef		void*		xsslisten;
 	typedef		void*		xsspoller;
@@ -28,11 +27,7 @@ namespace xcore
 	xsscontext	context_create_ipv4(x_iallocator*, u32 max_sockets);
 	void		context_destroy(xsscontext);
 
-	xssaddress	to_address(const char* ip, xssport port);
-	xssaddress	to_address(xssipv4 ip, xssport port);
-
-	xsssocket	connect(xsscontext, xssaddress);
-	xssaddress	get_address(xsssocket);
+	xsssocket	connect(xsscontext, const char* ip, xssport);
 	void		disconnect(xsssocket);
 	void		close(xsssocket);
 

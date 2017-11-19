@@ -219,7 +219,7 @@ namespace xcore
 
 #if defined(PLATFORM_PC) || defined(PLATFORM_OSX)
 
-	bool		xsock_addrin::construct(char* address, u16 port, u8 family, u8 socktype, u8 protocol)
+	bool		xsock_addrin::resolve(char const* address, u16 port, u8 family, u8 socktype, u8 protocol)
 	{
 		struct addrinfo hints;
 		struct addrinfo *result = NULL;
@@ -268,12 +268,12 @@ namespace xcore
 		return true;
 	}
 
-	bool	xsock_addrin::construct_udp(char* address, u16 port)
+	bool	xsock_addrin::construct_udp(char const* address, u16 port)
 	{
 		return construct(address, port, (u8)AF_UNSPEC, (u8)SOCK_DGRAM, (u8)IPPROTO_UDP);
 	}
 
-	bool	xsock_addrin::construct_tcp(char* address, u16 port)
+	bool	xsock_addrin::construct_tcp(char const* address, u16 port)
 	{
 		return construct(address, port, (u8)AF_UNSPEC, (u8)SOCK_STREAM, (u8)IPPROTO_TCP);
 	}

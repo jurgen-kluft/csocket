@@ -77,7 +77,7 @@ namespace xcore
 		return result;
 	}
 
-	bool set_blocking_mode(s32 handle, bool blocking) 
+	static bool set_blocking_mode(s32 handle, bool blocking) 
 	{
 #ifdef WINVER
 		u32 flag = !blocking;
@@ -96,7 +96,7 @@ namespace xcore
 		return true;
 	}
 
-	static void read_sockaddr(const struct sockaddr_storage* addr, char* host, unsigned int& port) 
+	static void read_sockaddr(const sockaddr_storage* addr, char* host, u16& port) 
 	{
 		char buffer[INET6_ADDRSTRLEN];
 		if(addr->ss_family == AF_INET) 
