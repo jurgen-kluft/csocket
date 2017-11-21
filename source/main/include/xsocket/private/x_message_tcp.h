@@ -60,7 +60,7 @@ namespace xcore
 		xmessage_hdr*		m_prev;
 	};
 
-	xmessage*		alloc_msg(x_iallocator* allocator, u32 size)
+	inline xmessage*		alloc_msg(x_iallocator* allocator, u32 size)
 	{
 		u32 size_align = 4;
 		u32 total_size = sizeof(xmessage_hdr) + 2 * sizeof(u32) + sizeof(xmessage) + ((size + (size_align - 1)) & ~(size_align - 1));
@@ -75,19 +75,19 @@ namespace xcore
 		return msg;
 	}
 
-	xmessage*		hdr_to_msg(xmessage_hdr* hdr)
+	inline xmessage*		hdr_to_msg(xmessage_hdr* hdr)
 	{
 		xmessage* msg = (xmessage*)((xbyte*)hdr + sizeof(xmessage_hdr) + 2 * sizeof(u32));
 		return msg;
 	}
 
-	xmessage_hdr*	msg_to_hdr(xmessage* msg)
+	inline xmessage_hdr*	msg_to_hdr(xmessage* msg)
 	{
 		xmessage_hdr* hdr = (xmessage_hdr*)((xbyte*)msg - sizeof(xmessage_hdr) - 2 * sizeof(u32));
 		return hdr;
 	}
 
-	void			hdr_to_payload(xmessage_hdr* hdr, xbyte*& payload, u32& payload_size)
+	inline void			hdr_to_payload(xmessage_hdr* hdr, xbyte*& payload, u32& payload_size)
 	{
 		xmessage* msg = hdr_to_msg(hdr);
 		payload = (xbyte*)((xbyte*)msg - sizeof(u32));
