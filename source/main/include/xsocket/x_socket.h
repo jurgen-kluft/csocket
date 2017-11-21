@@ -8,23 +8,38 @@
 
 namespace xcore
 {
-	class xsock_init
+	class x_iallocator;
+
+	struct xaddress;
+	struct xaddresses;
+	struct xmessage;
+
+	class xsocket
 	{
-	public:
-		inline		xsock_init() : m_initialized(false) {}
-
-		bool		startUp();
-		bool		cleanUp();
-
 	protected:
-		bool		m_initialized;
+		static void		s_attach();
+		static void		s_release();
+
+	public:
+		virtual			~xsocket() {}
+
+		virtual void	open(u16 port, const char* name, u32 max_open) = 0;
+		virtual void	close() = 0;
+
+		virtual void	process(xaddresses& open_conns, xaddresses& closed_conns, xaddresses& new_conns, xaddresses& failed_conns, xaddresses& pex_conns) = 0;
+
+		virtual void	connect(xaddress *) = 0;
+		virtual void	disconnect(xaddress *) = 0;
+
+		virtual bool	alloc_msg(xmessage *& msg) = 0;
+		virtual void	commit_msg(xmessage * msg) = 0;
+		virtual void	free_msg(xmessage * msg) = 0;
+
+		virtual bool	send_msg(xmessage * msg, xaddress * to) = 0;
+		virtual bool	recv_msg(xmessage *& msg, xaddress *& from) = 0;
 	};
 
-    enum ESocket
-    {
-        INVALID_SOCKET_DESCRIPTOR = -1,
-    };
-
+	xsocket*		gCreateTcpBasedSocket(x_iallocator*);
 }
 
 #endif

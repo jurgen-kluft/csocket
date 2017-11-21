@@ -6,6 +6,8 @@
 
 #include "xsocket/x_address.h"
 
+#if 0
+
 #ifdef PLATFORM_PC
 	#include <winsock2.h>         // For socket(), connect(), send(), and recv()
 	#include <ws2tcpip.h>
@@ -364,11 +366,8 @@ namespace xcore
 			sprintf(protocol_str, ":%ld", protocol);
 			break;
 		}
-
 		return true;
 	}
-
-
 #else
 	s32		xsock_addrin::from_string(const char* addr)
 	{
@@ -380,7 +379,7 @@ namespace xcore
 		sprintf(str, "null://");
 		return -1;
 	}
+#endif
+}
 
 #endif
-
-}

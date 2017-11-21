@@ -10,6 +10,7 @@
 
 namespace xcore
 {
+#if 0
 	typedef		void*	xaddresses;
 	typedef		void*	xaddress;
 	typedef		void*	xhandshake;
@@ -37,6 +38,7 @@ namespace xcore
 	bool		create(x_iallocator*, xhandshake*&);
 	bool		destroy(xhandshake*);
 
+#endif
 }
 
 #endif	// __XSOCKET_ADDRESS_H__
