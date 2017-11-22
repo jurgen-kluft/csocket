@@ -580,13 +580,15 @@ namespace xcore
 			{
 				xconnection * conn = m_open_connections.m_array[i];
 
-				if (status_is(conn->m_status, STATUS_CONNECTING))
+				// Why only checking connections that are in the CONNECTING state
+				// for exceptions ?
+				// if (status_is(conn->m_status, STATUS_CONNECTING))
 				{
 					// The socket was in the state of connecting and was added to the write set.
 					// If it appears in the exception set we will close and remove it.
 					if (FD_ISSET(conn->m_handle, &excp_set))
 					{
-						conn->m_status = status_set(conn->m_status, STATUS_CLOSE_IMMEDIATELY);
+						conn->m_status = STATUS_CLOSE_IMMEDIATELY;
 					}
 				}
 
@@ -638,6 +640,8 @@ namespace xcore
 
 					if (FD_ISSET(conn->m_handle, &write_set))
 					{
+						conn->m_last_io_time = current_time;
+						
 						if (status_is(conn->m_status, STATUS_CONNECTING))
 						{
 							// Connected !
@@ -661,8 +665,6 @@ namespace xcore
 								conn->m_message_queue.push(secure_msg);
 							}
 						}
-
-						conn->m_last_io_time = current_time;
 
 						s32 status;
 						xmessage* msg_that_was_send;
@@ -690,16 +692,8 @@ namespace xcore
 			}
 		}
 
-		// process messages from connections that are still in STATUS_SECURE
-
-
-		// process 'send queue' and send them on the sockets that can be written
-		// for any message in the send queue that has a closed socket free those messages
-
 		// for all open sockets add their addresses to 'open_connections'
-
 		// Every X seconds build a pex message and send it to the next open connection
-
 	}
 
 	void	xsocket_tcp::connect(xaddress* a)
