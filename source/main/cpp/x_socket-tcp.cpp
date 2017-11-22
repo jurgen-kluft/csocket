@@ -4,7 +4,7 @@
 #include "xsocket/x_socket.h"
 #include "xsocket/x_address.h"
 #include "xsocket/x_netip.h"
-#include "xsocket/private/x_message_tcp.h"
+#include "xsocket/private/x_message-tcp.h"
 
 #ifdef PLATFORM_PC
     #include <winsock2.h>         // For socket(), connect(), send(), and recv()
@@ -117,13 +117,14 @@ namespace xcore
 	const u16	STATUS_SECURE = 0x1000;
 	const u16	STATUS_SECURE_RECV = 0x0001;
 	const u16	STATUS_SECURE_SEND = 0x0002;
-	const u16	STATUS_CONNECTED = 0x0004;
-	const u16	STATUS_ACCEPTED = 0x0008;
-	const u16	STATUS_ACCEPT_SECURE_RECV = STATUS_ACCEPTED | STATUS_SECURE | STATUS_SECURE_RECV;
-	const u16	STATUS_ACCEPT_SECURE_SEND = STATUS_ACCEPTED | STATUS_SECURE | STATUS_SECURE_SEND;
-	const u16	STATUS_CONNECT_SECURE_SEND = STATUS_CONNECTED | STATUS_SECURE | STATUS_SECURE_SEND;
-	const u16	STATUS_CONNECT_SECURE_RECV = STATUS_CONNECTED | STATUS_SECURE | STATUS_SECURE_RECV;
-	const u16	STATUS_CONNECTING = 0x40;
+	const u16	STATUS_ACCEPT = 0x0004;
+	const u16	STATUS_CONNECT = 0x0008;
+	const u16	STATUS_ACCEPT_SECURE_RECV = STATUS_ACCEPT | STATUS_SECURE | STATUS_SECURE_RECV;
+	const u16	STATUS_ACCEPT_SECURE_SEND = STATUS_ACCEPT | STATUS_SECURE | STATUS_SECURE_SEND;
+	const u16	STATUS_CONNECT_SECURE_SEND = STATUS_CONNECT | STATUS_SECURE | STATUS_SECURE_SEND;
+	const u16	STATUS_CONNECT_SECURE_RECV = STATUS_CONNECT | STATUS_SECURE | STATUS_SECURE_RECV;
+	const u16	STATUS_CONNECTING = 0x20;
+	const u16	STATUS_CONNECTED = 0x040;
 	const u16	STATUS_DISCONNECTED = 0x80;
 	const u16	STATUS_CLOSE = 0x100;
 	const u16	STATUS_CLOSE_IMMEDIATELY = 0x200;
@@ -157,10 +158,28 @@ namespace xcore
 		xaddress*				m_address;
 		xsocket_tcp*			m_parent;
 		xmessage_queue			m_message_queue;
+		xmessage*				m_message_read;
 		message_socket_reader	m_message_reader;
 		message_socket_writer	m_message_writer;
 	};
 
+	static void s_init(xconnection* c, xsocket_tcp* parent)
+	{
+		c->m_handle = INVALID_SOCKET;
+		c->m_last_io_time = time(NULL);
+		c->m_status = STATUS_NONE;
+		c->m_ip_port = 0;
+		memset(c->m_ip_str, 0, sizeof(c->m_ip_str));
+		c->m_sockaddr_len = 0;
+		memset(&c->m_sockaddr, 0, sizeof(socket_address));
+		c->m_address = NULL;
+		c->m_parent = parent;
+		c->m_message_queue.init();
+		c->m_message_read = NULL;
+		c->m_message_reader.init(INVALID_SOCKET);
+		c->m_message_writer.init(INVALID_SOCKET, NULL);
+	}
+	
 	static s32 s_create_socket(const char* host, u16 port, bool listen, bool blockingConnect, xconnection* socket)
 	{
 		socket->m_handle = NULL;
@@ -306,7 +325,7 @@ namespace xcore
 	struct xaddress
 	{
 		xconnection*	m_conn;
-		u8				m_id[32];
+		xsockid			m_sockid;
 		xnetip			m_netip;
 	};
 
@@ -352,6 +371,8 @@ namespace xcore
 		x_iallocator*	m_allocator;
 		u16				m_local_port;
 		const char*		m_socket_name;	// e.g. Jurgen/CNSHAW1334/10.0.22.76:port/virtuosgames.com
+		xsockid			m_sockid;
+		xnetip			m_netip;
 		xconnection		m_server_socket;
 
 		u32				m_max_open;
@@ -370,7 +391,7 @@ namespace xcore
 		inline			xsocket_tcp(x_iallocator* allocator) : m_allocator(allocator)	{ s_attach(); }
 						~xsocket_tcp() { s_release(); }
 
-		virtual void	open(u16 port, const char* socket_name, u32 max_open);
+		virtual void	open(u16 port, const char* socket_name, xsockid const& id, u32 max_open);
 		virtual void	close();
 
 		virtual void	process(xaddresses& open_conns, xaddresses& closed_conns, xaddresses& new_conns, xaddresses& failed_conns, xaddresses& pex_conns);
@@ -395,9 +416,10 @@ namespace xcore
 		return socket;
 	}
 
-	void	xsocket_tcp::open(u16 port, const char* name, u32 max_open)
+	void	xsocket_tcp::open(u16 port, const char* name, xsockid const& id, u32 max_open)
 	{
 		// Open the server (bind/listen) socket
+		m_sockid = id;
 		s_create_socket(NULL, port, true, false, &m_server_socket);
 	}
 
@@ -420,13 +442,14 @@ namespace xcore
 		if (sock != INVALID_SOCKET)
 		{
 			pop_connection(&m_free_connections, c);
-			if (c == NULL || memset(c, 0, sizeof(*c)) == NULL)
+			if (c == NULL)
 			{
 				closesocket(sock);
 				c = NULL;
 			}
 			else
 			{
+				s_init(c, this);
 				s_set_close_on_exec(sock);
 				s_set_non_blocking_mode(sock);
 				c->m_parent = this;
@@ -434,6 +457,7 @@ namespace xcore
 				c->m_address = NULL;
 				c->m_sockaddr_len = len;
 				memcpy(&c->m_sockaddr, &sa, len);
+				c->m_status = STATUS_ACCEPT_SECURE_RECV;
 			}
 		}
 		return c;
@@ -443,33 +467,32 @@ namespace xcore
 	{
 		time_t current_time = time(NULL);
 
-		// accept any new tcp sockets, park them in the 'secure' array
-		// connect to any new requested remote addresses, park them in the 'secure' array
-		while (accept())
-		{
-
-		}
-
 		// Non-block connects to remote IP:Port sockets
 		xaddress* remote_addr;
 		while (pop_address(&m_to_connect, remote_addr))
 		{
-			xconnection* c;
-			if (pop_connection(&m_free_connections, c))
+			xconnection* c = remote_addr->m_conn;
+			if (c->m_address == NULL)
 			{
-				char remote_str[128 + 1];
-				remote_str[128] = '\0';
-				remote_addr->m_netip.to_string(remote_str, 128, true);
-				if (s_create_socket(remote_str, remote_addr->m_netip.get_port(), false, false, c) == 0)
+				if (pop_connection(&m_free_connections, c))
 				{
-					// This connection needs to be secured first
-					push_connection(&m_secure_connections, c);
-				}
-				else
-				{
-					// Failed to connect to remote, reuse the connection object
-					push_address(&failed_connections, remote_addr);
-					push_connection(&m_free_connections, c);
+					s_init(c, this);
+
+					char remote_str[128 + 1];
+					remote_str[128] = '\0';
+					remote_addr->m_netip.to_string(remote_str, 128, true);
+					if (s_create_socket(remote_str, remote_addr->m_netip.get_port(), false, false, c) == 0)
+					{
+						// This connection needs to be secured first
+						push_connection(&m_secure_connections, c);
+						c->m_status = STATUS_CONNECT_SECURE_SEND | STATUS_CONNECTING;
+					}
+					else
+					{
+						// Failed to connect to remote, reuse the connection object
+						push_address(&failed_connections, remote_addr);
+						push_connection(&m_free_connections, c);
+					}
 				}
 			}
 		}
@@ -503,11 +526,11 @@ namespace xcore
 		for (u32 i = 0; i < m_secure_connections.m_len; ++i)
 		{
 			xconnection* sc = m_secure_connections.m_array[i];
-			if (status_is_one_of(sc->m_status, STATUS_ACCEPT_SECURE_RECV | STATUS_CONNECT_SECURE_RECV))
+			if (status_is(sc->m_status, STATUS_SECURE_RECV))
 			{
 				add_to_set(sc->m_handle, &read_set, &max_fd);
 			}
-			else if (status_is_one_of(sc->m_status, STATUS_ACCEPT_SECURE_SEND | STATUS_CONNECT_SECURE_SEND))
+			else if (status_is(sc->m_status, STATUS_SECURE_SEND))
 			{
 				add_to_set(sc->m_handle, &write_set, &max_fd);
 			}
@@ -530,7 +553,7 @@ namespace xcore
 			// now to prevent last_io_time being set to the past.
 			current_time = time(NULL);
 
-			// @TODO: Handle exceptions of the listening and ctl[] sockets, we basically
+			// @TODO: Handle exceptions of the listening socket, we basically
 			//        have to restart the server when this happens and the user needs
 			//        to know this.
 			//        Restarting should have a time-guard so that we don't try and restart
@@ -549,6 +572,9 @@ namespace xcore
 					push_connection(&m_secure_connections, conn);
 				}
 			}
+
+			xmessage_queue rcvd_secure_messages;
+			rcvd_secure_messages.init();
 
 			for (s32 i = 0; i<m_open_connections.m_len; )
 			{
@@ -569,14 +595,43 @@ namespace xcore
 					if (FD_ISSET(conn->m_handle, &read_set))
 					{
 						conn->m_last_io_time = current_time;
+						xmessage* curr_msg = conn->m_message_read;
+						if (curr_msg == NULL)
+						{
+							alloc_msg(conn->m_message_read);
+							curr_msg = conn->m_message_read;
+						}
+
+						s32 status;
 						xmessage* rcvd_msg;
-						while (conn->m_message_reader.read(rcvd_msg))
+						while ((status = conn->m_message_reader.read(curr_msg, rcvd_msg)) > 0)
 						{
 							if (rcvd_msg != NULL)
 							{
 								xmessage_hdr* rcvd_hdr = msg_to_hdr(rcvd_msg);
 								rcvd_hdr->m_remote = conn->m_address;
-								m_received_messages.push(rcvd_hdr);
+								if (status_is(conn->m_status, STATUS_SECURE))
+								{
+									if (status_is(conn->m_status, STATUS_SECURE_RECV))
+									{
+										xmessage_reader msg_reader(rcvd_msg);
+										xsockid sockid;
+										msg_reader.read_data((xbyte*)sockid.m_id, (u32)xsockid::SIZE);
+
+										// Search this ID in our database, if no address found create one
+										// and add it to the database.
+										// If found compare the netip in the entry with the netip received.
+									}
+									else
+									{
+										// Something is wrong
+										conn->m_status = STATUS_CLOSE_IMMEDIATELY;
+									}
+								}
+								else
+								{
+									m_received_messages.push(rcvd_hdr);
+								}
 							}
 						}
 					}
@@ -585,23 +640,58 @@ namespace xcore
 					{
 						if (status_is(conn->m_status, STATUS_CONNECTING))
 						{
+							// Connected !
 							conn->m_status = status_clear(conn->m_status, STATUS_CONNECTING);
 							conn->m_status = status_set(conn->m_status, STATUS_CONNECTED);
-							// Connected !
+
+							// Is this a SECURE connection
+							if (status_is(conn->m_status, STATUS_SECURE))
+							{
+								// Create a message with our ID and Address details and send it
+								xmessage* secure_msg;
+								alloc_msg(secure_msg);
+
+								xmessage_writer msg_writer(secure_msg);
+								msg_writer.write_data(m_sockid.m_id, xsockid::SIZE);
+								xbyte netip_data[xnetip::SERIALIZE_SIZE];
+								m_netip.serialize_to(netip_data, xnetip::SERIALIZE_SIZE);
+								msg_writer.write_data(netip_data, xnetip::SERIALIZE_SIZE);
+								secure_msg->m_size = msg_writer.get_cursor();
+								
+								conn->m_message_queue.push(secure_msg);
+							}
 						}
 
 						conn->m_last_io_time = current_time;
 
-						xmessage* send_msg;
-						while (conn->m_message_writer.write(send_msg))
+						s32 status;
+						xmessage* msg_that_was_send;
+						while ((status = conn->m_message_writer.write(msg_that_was_send)) > 0)
 						{
-							if (send_msg != NULL)
-								free_msg(send_msg);
+							if (msg_that_was_send != NULL)
+								free_msg(msg_that_was_send);
+						}
+
+						if (status_is(conn->m_status, STATUS_SECURE_SEND))
+						{
+							if (conn->m_message_queue.empty())
+							{
+								conn->m_status = status_clear(conn->m_status, STATUS_SECURE_SEND);
+								conn->m_status = status_set(conn->m_status, STATUS_SECURE_RECV);
+							}
+						}
+
+						if (status < 0)
+						{
+							conn->m_status = status_set(conn->m_status, STATUS_CLOSE_IMMEDIATELY);
 						}
 					}
 				}
 			}
 		}
+
+		// process messages from connections that are still in STATUS_SECURE
+
 
 		// process 'send queue' and send them on the sockets that can be written
 		// for any message in the send queue that has a closed socket free those messages
@@ -640,9 +730,16 @@ namespace xcore
 
 	bool	xsocket_tcp::send_msg(xmessage* msg, xaddress* to)
 	{
-		// queue the message up in the to-send queue of the associated connection
-		xmessage_hdr* msg_hdr = msg_to_hdr(msg);
-		to->m_conn->m_message_queue.push(msg_hdr);
+		if (to->m_conn != NULL)
+		{
+			if (status_is(to->m_conn->m_status, STATUS_CONNECTED))
+			{
+				// queue the message up in the to-send queue of the associated connection
+				xmessage_hdr* msg_hdr = msg_to_hdr(msg);
+				to->m_conn->m_message_queue.push(msg_hdr);
+				return true;
+			}
+		}
 		return false;
 	}
 

@@ -36,4 +36,23 @@ namespace xcore
 		return l;
 	}
 
+	void	xnetip::serialize_to(xbyte* dst, u32 max_len)
+	{
+		u16 * d = (u16*)dst;
+		d[0] = m_type;
+		d[1] = m_port;
+		d += 2;
+		for (s32 i = 0; i < 8; ++i)
+			d[i] = m_ip.ip16[i];
+	}
+
+	void	xnetip::deserialize_from(xbyte const* src, u32 len)
+	{
+		u16 const* s = (u16 const*)src;
+		m_type = *s++;
+		m_port = *s++;
+		for (s32 i = 0; i < 8; ++i)
+			m_ip.ip16[i] = *s++;
+	}
+
 }

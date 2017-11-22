@@ -14,6 +14,12 @@ namespace xcore
 	struct xaddresses;
 	struct xmessage;
 
+	struct xsockid
+	{
+		enum econf { SIZE = 32 };
+		u8				m_id[SIZE];
+	};
+
 	class xsocket
 	{
 	protected:
@@ -23,7 +29,7 @@ namespace xcore
 	public:
 		virtual			~xsocket() {}
 
-		virtual void	open(u16 port, const char* name, u32 max_open) = 0;
+		virtual void	open(u16 port, const char* name, xsockid const& id, u32 max_open) = 0;
 		virtual void	close() = 0;
 
 		virtual void	process(xaddresses& open_conns, xaddresses& closed_conns, xaddresses& new_conns, xaddresses& failed_conns, xaddresses& pex_conns) = 0;

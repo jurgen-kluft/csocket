@@ -15,6 +15,11 @@ namespace xcore
 	// ==============================================================================================================================
 	struct xnetip
 	{
+		enum econf
+		{
+			SERIALIZE_SIZE = 20
+		};
+
 		enum etype
 		{
 			NETIP_NONE = 0,
@@ -73,6 +78,10 @@ namespace xcore
 			}
 			return false;
 		}
+
+		u32			get_serialization_size() const						{ return 2 * sizeof(u16) + 8 * sizeof(u16); }
+		void		serialize_to(xbyte* dst, u32 max_len);
+		void		deserialize_from(xbyte const* src, u32 len);
 
 	private:
 		void		setip(xbyte* _ip, u32 size)
