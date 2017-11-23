@@ -50,7 +50,7 @@ namespace xcore
 			m_current_msg = m_send_queue->peek();
 			if (m_current_msg != NULL)
 			{
-				hdr_to_payload(m_current_msg, m_data, m_bytes_to_write);
+				get_msg_payload(m_current_msg, m_data, m_bytes_to_write);
 				m_bytes_written = 0;
 			}
 		}
@@ -73,7 +73,7 @@ namespace xcore
 			if (bytes_written == m_bytes_to_write)
 			{
 				m_current_msg = m_send_queue->pop();
-				msg = hdr_to_msg(m_current_msg);
+				msg = node_to_msg(m_current_msg);
 				return m_send_queue->empty() ? 0 : 1;
 			}
 			else
@@ -94,8 +94,8 @@ namespace xcore
 		if (m_msg == NULL)
 		{
 			m_msg = msg;
-			m_hdr = msg_to_hdr(msg);
-			hdr_to_payload(m_hdr, m_data, m_data_size);
+			m_hdr = msg_to_node(msg);
+			get_msg_payload(m_hdr, m_data, m_data_size);
 			m_bytes_read = 0;
 			m_bytes_to_read = 4;
 			m_state = STATE_READ_SIZE;

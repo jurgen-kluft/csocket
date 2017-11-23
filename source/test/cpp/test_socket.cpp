@@ -17,7 +17,8 @@ UNITTEST_SUITE_BEGIN(xaddress)
 		UNITTEST_TEST(new_socket)
 		{
 			xsocket* s = gCreateTcpBasedSocket(gTestAllocator);
-			s->open(3823, "Jurgen/CNSHAW1334/10.0.22.76:3823/virtuosgames.com", 32);
+			xsockid sid;
+			s->open(3823, "Jurgen/CNSHAW1334/10.0.22.76:3823/virtuosgames.com", sid, 32);
 		}
 	}
 }
