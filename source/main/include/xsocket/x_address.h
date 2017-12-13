@@ -8,37 +8,22 @@
 #pragma once
 #endif
 
+#include "xbase/x_buffer.h"
+
 namespace xcore
 {
-#if 0
-	typedef		void*	xaddresses;
-	typedef		void*	xaddress;
-	typedef		void*	xhandshake;
+	struct xaddress;
 
-	struct xaddress_data
-	{
-		u8		id[64];		// Connection ID
-		u8		ep[64];		// End-Point information (e.g. 88.128.64.32:5488, IP:Port)
-	};
-
-	bool		create(x_iallocator*, u32 max_addresses, xaddresses&);
-	void		destroy(xaddresses);
-
-	bool		add_address(xaddresses, xaddress_data*, xaddress& );
-	bool		rem_address(xaddresses, xaddress_data*, xaddress& );
-	bool		get_address(xaddresses, xaddress_data*, xaddress& );
-
-	class xhandshake
+	class xaddresses
 	{
 	public:
-		virtual void	process(xsssocket, bool& finished, bool& error) = 0;
+		static bool		create(x_iallocator* alloc, u32 max_addresses, xaddresses*& addr);
+		static void		destroy(xaddresses* addr);
+
+		virtual bool	add(xbuffer32 const& addr_id, xbuffer32 const& addr_ep) = 0;
+		virtual bool	get(xbuffer32 const& addr_id, xbuffer32& addr_ep) = 0;
+		virtual bool	rem(xbuffer32 const& addr_id) = 0;
 	};
-
-	// New connections need a handshake to validate/secure the connection
-	bool		create(x_iallocator*, xhandshake*&);
-	bool		destroy(xhandshake*);
-
-#endif
 }
 
 #endif	// __XSOCKET_ADDRESS_H__

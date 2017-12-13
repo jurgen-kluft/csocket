@@ -6,6 +6,8 @@
 #pragma once
 #endif
 
+#include "xbase/x_buffer.h"
+
 namespace xcore
 {
 	class x_iallocator;
@@ -14,11 +16,7 @@ namespace xcore
 	struct xaddresses;
 	struct xmessage;
 
-	struct xsockid
-	{
-		enum econf { SIZE = 32 };
-		u8				m_id[SIZE];
-	};
+	typedef		xbuffer32		xsockid;
 
 	class xsocket
 	{

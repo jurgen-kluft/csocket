@@ -61,13 +61,13 @@ namespace xcore
 		{
 			sockaddr_in const* sin = reinterpret_cast<const struct sockaddr_in*>(addr);
 			port = ntohs(sin->sin_port);
-			inet_ntop(addr->ss_family, (void*)&(sin->sin_addr), buffer, sizeof(buffer));
+			inet_ntop(addr->ss_family, (void*)&(sin->sin_addr), buffer, sizeof(sin->sin_addr));
 		}
 		else
 		{
 			sockaddr_in6 const* sin = reinterpret_cast<const struct sockaddr_in6*>(addr);
 			port = ntohs(sin->sin6_port);
-			inet_ntop(addr->ss_family, (void*)&(sin->sin6_addr), buffer, sizeof(buffer));
+			inet_ntop(addr->ss_family, (void*)&(sin->sin6_addr), buffer, sizeof(sin->sin6_addr));
 		}
 		strcpy(host, buffer);
 	}
@@ -470,10 +470,10 @@ namespace xcore
 		alloc_msg(secure_msg);
 
 		xmessage_writer msg_writer(secure_msg);
-		msg_writer.write_data(m_sockid.m_id, xsockid::SIZE);
+		msg_writer.write_data(m_sockid.buffer());
 		xbyte netip_data[xnetip::SERIALIZE_SIZE];
 		m_netip.serialize_to(netip_data, xnetip::SERIALIZE_SIZE);
-		msg_writer.write_data(netip_data, xnetip::SERIALIZE_SIZE);
+		msg_writer.write_data(xbuffer(xnetip::SERIALIZE_SIZE, netip_data));
 		secure_msg->m_size = msg_writer.get_cursor();
 
 		conn->m_message_queue.push(secure_msg);
@@ -612,17 +612,18 @@ namespace xcore
 					if (FD_ISSET(conn->m_handle, &read_set))
 					{
 						conn->m_last_io_time = current_time;
-						xmessage* curr_msg = conn->m_message_read;
-						if (curr_msg == NULL)
-						{
-							alloc_msg(conn->m_message_read);
-							curr_msg = conn->m_message_read;
-						}
 
-						s32 status;
-						xmessage* rcvd_msg;
-						while ((status = conn->m_message_reader.read(curr_msg, rcvd_msg)) > 0)
+						s32 status = 1;
+						while (status > 0)
 						{
+							if (conn->m_message_read == NULL)
+							{
+								alloc_msg(conn->m_message_read);
+							}
+
+							xmessage* rcvd_msg = NULL;
+							status = conn->m_message_reader.read(conn->m_message_read, rcvd_msg);
+
 							if (rcvd_msg != NULL)
 							{
 								xmessage_node* rcvd_node = msg_to_node(rcvd_msg);
@@ -633,7 +634,7 @@ namespace xcore
 									{
 										xmessage_reader msg_reader(rcvd_msg);
 										xsockid sockid;
-										msg_reader.read_data((xbyte*)sockid.m_id, (u32)xsockid::SIZE);
+										msg_reader.read_data(sockid.buffer());
 
 										// Search this ID in our database, if no address found create one
 										// and add it to the database.

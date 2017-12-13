@@ -326,26 +326,30 @@ namespace xcore
 		return 0;
 	}
 
-	bool				xmessage_reader::read_data(xbyte* data, u32 size)
+	bool				xmessage_reader::read_data(xbuffer& buf)
 	{
-		if (!_can_read(msg_, cursor_, size))
+		if (!_can_read(msg_, cursor_, buf.size()))
 		{
 			return false;
 		}
 		xbyte const* src = (xbyte const*)msg_->m_data + cursor_;
-		memcpy(data, src, size);
-		cursor_ += size;
+		memcpy(buf.m_data, src, buf.size());
+		cursor_ += buf.size();
 		return true;
 	}
 
-	bool				xmessage_reader::view_data(xbyte const*& data, u32 size)
+	bool				xmessage_reader::view_data(u32 size, xcbuffer& buf)
 	{
 		if (!_can_read(msg_, cursor_, size))
 		{
-			data = NULL;
+			buf.m_data = NULL;
+			buf.m_len = 0;
 			return false;
 		}
-		data = (xbyte const*)msg_->m_data + cursor_;
+
+		buf.m_data = (xbyte const*)msg_->m_data + cursor_;
+		buf.m_len = size;
+
 		cursor_ += size;
 		return true;
 	}
@@ -524,15 +528,28 @@ namespace xcore
 	}
 
 
-	u32					xmessage_writer::write_data(const xbyte* _data, u32 _size)
+	u32					xmessage_writer::write_data(xbuffer const& buf)
 	{
-		if (_can_write(msg_, cursor_, _size))
+		if (_can_write(msg_, cursor_, buf.size()))
 		{
 			xbyte* dst = (xbyte*)msg_->m_data + cursor_;
-			for (u32 i = 0; i<_size; i++)
-				*dst++ = *_data++;
-			cursor_ += _size;
-			return _size;
+			for (u32 i = 0; i<buf.size(); i++)
+				dst[i] = buf[i];
+			cursor_ += buf.size();
+			return buf.size();
+		}
+		return 0;
+	}
+
+	u32					xmessage_writer::write_data(xcbuffer const& buf)
+	{
+		if (_can_write(msg_, cursor_, buf.size()))
+		{
+			xbyte* dst = (xbyte*)msg_->m_data + cursor_;
+			for (u32 i = 0; i<buf.size(); i++)
+				dst[i] = buf[i];
+			cursor_ += buf.size();
+			return buf.size();
 		}
 		return 0;
 	}

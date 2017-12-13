@@ -277,8 +277,9 @@ namespace xcore
 		u32					read(f32 &);
 		u32					read(f64 &);
 
-		bool				read_data(xbyte * _data, u32 _size);
-		bool				view_data(xbyte const*& _data, u32 _size);
+		bool				read_data(xbuffer& buf);
+		bool				view_data(u32 size, xcbuffer& buf);
+
 		bool				view_string(char const*& _str, u32& _out_len);
 
 	protected:
@@ -308,7 +309,9 @@ namespace xcore
 		u32					write(f32);
 		u32					write(f64);
 
-		u32					write_data(const xbyte*, u32);
+		u32					write_data(xbuffer const& cbuf);
+		u32					write_data(xcbuffer const& cbuf);
+
 		u32					write_string(const char*, u32 _len = 0);
 
 	protected:

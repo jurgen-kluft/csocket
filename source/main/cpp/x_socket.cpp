@@ -32,10 +32,10 @@ namespace xcore
 	public:
 		static bool		attach();
 		static bool		release();
-
 	protected:
 		static s32		s_initialized;
 	};
+
 	s32	xsock_init::s_initialized = 0;
 
 	bool	xsock_init::attach()
