@@ -12,11 +12,12 @@ namespace xcore
 {
 	class x_iallocator;
 
+	class xaddresses;
+
 	struct xaddress;
-	struct xaddresses;
 	struct xmessage;
 
-	typedef		xbuffer32		xsockid;
+	typedef	xbuffer32	xsockid;
 
 	class xsocket
 	{
