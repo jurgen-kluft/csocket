@@ -1,10 +1,15 @@
 // x_socket_tcp.cpp - Core socket functions 
 #include "xbase/x_target.h"
+#include "xbase/x_bit_field.h"
 #include "xbase/x_debug.h"
+#include "xbase/x_string_ascii.h"
+
 #include "xsocket/x_socket.h"
 #include "xsocket/x_address.h"
 #include "xsocket/x_netip.h"
 #include "xsocket/private/x_message-tcp.h"
+#include "xsocket/private/x_message.h"
+#include "xsocket/x_message.h"
 #include "xtime/x_time.h"
 
 #ifdef PLATFORM_PC
@@ -35,10 +40,10 @@ namespace xcore
 	// Forward declares
 	class xsocket_tcp;
 
-	static bool s_set_blocking_mode(socket_t sock, bool blocking)
+	static bool s_set_blocking_mode(socket_t sock, bool noblock)
 	{
 #ifdef WINVER
-		u_long flag = !blocking;
+		u_long flag = noblock;
 		if (ioctlsocket(sock, FIONBIO, &flag) != 0)
 			return false;
 #else
@@ -54,25 +59,29 @@ namespace xcore
 		return true;
 	}
 
-	static void s_read_sockaddr(const sockaddr_storage* addr, char* host, u16& port)
+	static void s_read_sockaddr(const sockaddr_storage* addr, xuchars& host, u16& port)
 	{
-		char buffer[INET6_ADDRSTRLEN];
+		xuchars128 buffer;
 		if (addr->ss_family == AF_INET)
 		{
 			sockaddr_in const* sin = reinterpret_cast<const struct sockaddr_in*>(addr);
 			port = ntohs(sin->sin_port);
-			inet_ntop(addr->ss_family, (void*)&(sin->sin_addr), buffer, sizeof(sin->sin_addr));
+			inet_ntop(addr->ss_family, (void*)&(sin->sin_addr), buffer.str(), sizeof(sin->sin_addr));
+			buffer.rescan();
 		}
 		else
 		{
 			sockaddr_in6 const* sin = reinterpret_cast<const struct sockaddr_in6*>(addr);
 			port = ntohs(sin->sin6_port);
-			inet_ntop(addr->ss_family, (void*)&(sin->sin6_addr), buffer, sizeof(sin->sin6_addr));
+			inet_ntop(addr->ss_family, (void*)&(sin->sin6_addr), buffer.str(), sizeof(sin->sin6_addr));
+			buffer.rescan();
 		}
-		strcpy(host, buffer);
+
+		// Copy to output string
+		host = buffer.cchars();
 	}
 
-	static addrinfo* s_get_socket_info(const char* host, unsigned int port, bool wildcardAddress)
+	static addrinfo* s_get_socket_info(xcuchars const& host, u16 port, bool wildcardAddress)
 	{
 		struct addrinfo conf, *res;
 		memset(&conf, 0, sizeof(conf));
@@ -81,10 +90,10 @@ namespace xcore
 			conf.ai_flags |= AI_PASSIVE;
 		conf.ai_socktype = SOCK_STREAM;
 
-		char portStr[10];
-		snprintf(portStr, 10, "%u", port);
+		xuchars16 portstr;
+		ascii::sprintf(portstr.chars(), ascii::crunes("%u"), x_va(port));
 
-		s32 result = ::getaddrinfo(host, portStr, &conf, &res);
+		s32 result = ::getaddrinfo(host.str(), portstr.m_str, &conf, &res);
 		if (result != 0)
 			return NULL;	// ERROR_RESOLVING_ADDRESS
 		return res;
@@ -99,6 +108,12 @@ namespace xcore
 #else
 		sockaddr		sin6;
 #endif
+		void			clear()
+		{
+			memset(&sa, 0, sizeof(sa));
+			memset(&sin, 0, sizeof(sin));
+			memset(&sin6, 0, sizeof(sin6));
+		}
 	};
 
 	static void s_set_close_on_exec(socket_t sock)
@@ -151,7 +166,7 @@ namespace xcore
 		xtick					m_last_io_time;
 		u16						m_status;
 		u16						m_ip_port;
-		char					m_ip_str[INET6_ADDRSTRLEN];
+		xuchars64				m_ip_str;
 		u32						m_sockaddr_len;
 		socket_address			m_sockaddr;
 		xaddress*				m_address;
@@ -168,9 +183,9 @@ namespace xcore
 		c->m_last_io_time = 0;
 		c->m_status = STATUS_NONE;
 		c->m_ip_port = 0;
-		memset(c->m_ip_str, 0, sizeof(c->m_ip_str));
+		c->m_ip_str.reset();
 		c->m_sockaddr_len = 0;
-		memset(&c->m_sockaddr, 0, sizeof(socket_address));
+		c->m_sockaddr.clear();
 		c->m_address = NULL;
 		c->m_parent = parent;
 		c->m_message_queue.init();
@@ -178,20 +193,27 @@ namespace xcore
 		c->m_message_reader.init(INVALID_SOCKET);
 		c->m_message_writer.init(INVALID_SOCKET, NULL);
 	}
+
+	enum e_create_socket
+	{
+		CS_OPTION_LISTEN = 1,
+		CS_OPTION_NOBLOCK = 2,
+	};
 	
-	static s32 s_create_socket(const char* host, u16 port, bool listen, bool blockingConnect, xconnection* socket)
+	static s32 s_create_socket(xcuchars const& host, u16 port, u32 flags, xconnection* socket)
 	{
 		socket->m_handle = NULL;
 		socket->m_status = STATUS_NONE;
 
 		addrinfo* info;
-		if (host != NULL)
+		if (host.is_empty()==false)
 		{
 			info = s_get_socket_info(host, port, false);
 		}
 		else
 		{
-			info = s_get_socket_info("localhost", port, true);
+			xcuchars localhost("localhost");
+			info = s_get_socket_info(localhost, port, true);
 		}
 
 		struct addrinfo* nextAddr = info;
@@ -209,9 +231,9 @@ namespace xcore
 				nextAddr = nextAddr->ai_next;
 				continue;
 			}
-			s_set_blocking_mode(socket->m_handle, blockingConnect);
+			s_set_blocking_mode(socket->m_handle, xbfIsSet(flags, CS_OPTION_NOBLOCK));
 #ifdef TARGET_PC
-			char flag = 1;
+			xbyte flag = 1;
 #else
 			int flag = 1;
 			if (::setsockopt(socket->m_handle, SOL_SOCKET, SO_REUSEPORT, reinterpret_cast<const char*>(&flag), sizeof(flag)) == -1)
@@ -226,14 +248,14 @@ namespace xcore
 				socket->m_handle = -1;
 				return -1;
 			}
-			if (!listen)
+			if (xbfIsSet(flags, CS_OPTION_LISTEN))
 			{
-				if (::connect(socket->m_handle, nextAddr->ai_addr, nextAddr->ai_addrlen) == -1 && blockingConnect)
+				if (::connect(socket->m_handle, nextAddr->ai_addr, nextAddr->ai_addrlen) == -1 && !xbfIsSet(flags, CS_OPTION_NOBLOCK))
 				{
 					::closesocket(socket->m_handle);
 					socket->m_handle = -1;
 				}
-				else if (blockingConnect)
+				else if (!xbfIsSet(flags, CS_OPTION_NOBLOCK))
 				{
 					socket->m_status = STATUS_CONNECTED;
 				}
@@ -262,7 +284,7 @@ namespace xcore
 				continue;
 			}
 
-			if (blockingConnect)
+			if (!xbfIsSet(flags, CS_OPTION_NOBLOCK))
 				s_set_blocking_mode(socket->m_handle, false);
 
 			memcpy(&socket->m_sockaddr, nextAddr->ai_addr, nextAddr->ai_addrlen);
@@ -290,7 +312,7 @@ namespace xcore
 			return -1;
 		}
 
-		s_read_sockaddr(&localAddr, socket->m_ip_str, socket->m_ip_port);
+		s_read_sockaddr(&localAddr, socket->m_ip_str.chars(), socket->m_ip_port);
 		return 0;
 	}
 
@@ -391,7 +413,7 @@ namespace xcore
 		inline			xsocket_tcp(x_iallocator* allocator) : m_allocator(allocator)	{ s_attach(); }
 						~xsocket_tcp() { s_release(); }
 
-		virtual void	open(u16 port, const char* socket_name, xsockid const& id, u32 max_open);
+		virtual void	open(u16 port, xcuchars const& socket_name, xsockid const& id, u32 max_open);
 		virtual void	close();
 
 		virtual void	process(xaddresses& open_conns, xaddresses& closed_conns, xaddresses& new_conns, xaddresses& failed_conns, xaddresses& pex_conns);
@@ -411,16 +433,15 @@ namespace xcore
 
 	xsocket*		gCreateTcpBasedSocket(x_iallocator* allocator)
 	{
-		void* mem = allocator->allocate(sizeof(xsocket_tcp), sizeof(void*));
-		xsocket_tcp* socket = new (mem) xsocket_tcp(allocator);
+		xsocket_tcp* socket = xnew<xsocket_tcp>(xheap(allocator), allocator);
 		return socket;
 	}
 
-	void	xsocket_tcp::open(u16 port, const char* name, xsockid const& id, u32 max_open)
+	void	xsocket_tcp::open(u16 port, xcuchars const& name, xsockid const& id, u32 max_open)
 	{
 		// Open the server (bind/listen) socket
 		m_sockid = id;
-		s_create_socket(NULL, port, true, false, &m_server_socket);
+		s_create_socket(xcuchars(), port, CS_OPTION_LISTEN | CS_OPTION_NOBLOCK, &m_server_socket);
 	}
 
 	void	xsocket_tcp::close()
@@ -472,8 +493,9 @@ namespace xcore
 		xmessage_writer msg_writer(secure_msg);
 		msg_writer.write_data(m_sockid.buffer());
 		xbyte netip_data[xnetip::SERIALIZE_SIZE];
-		m_netip.serialize_to(netip_data, xnetip::SERIALIZE_SIZE);
-		msg_writer.write_data(xbuffer(xnetip::SERIALIZE_SIZE, netip_data));
+		xbuffer netip(xnetip::SERIALIZE_SIZE, netip_data);
+		m_netip.serialize_to(netip);
+		msg_writer.write_data(netip);
 		secure_msg->m_size = msg_writer.get_cursor();
 
 		conn->m_message_queue.push(secure_msg);
@@ -492,10 +514,9 @@ namespace xcore
 				{
 					s_init(c, this);
 
-					char remote_str[128 + 1];
-					remote_str[128] = '\0';
-					remote_addr->m_netip.to_string(remote_str, 128, true);
-					if (s_create_socket(remote_str, remote_addr->m_netip.get_port(), false, false, c) == 0)
+					xuchars128 remote_str;
+					remote_addr->m_netip.to_string(remote_str.chars(), true);
+					if (s_create_socket(remote_str.cchars(), remote_addr->m_netip.get_port(), CS_OPTION_NOBLOCK, c) == 0)
 					{
 						// This connection needs to be secured first
 						push_connection(&m_secure_connections, c);
@@ -591,7 +612,7 @@ namespace xcore
 			xmessage_queue rcvd_secure_messages;
 			rcvd_secure_messages.init();
 
-			for (s32 i = 0; i<m_open_connections.m_len; )
+			for (u32 i = 0; i<m_open_connections.m_len; )
 			{
 				xconnection * conn = m_open_connections.m_array[i];
 

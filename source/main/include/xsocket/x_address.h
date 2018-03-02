@@ -14,15 +14,15 @@ namespace xcore
 {
 	struct xaddress;
 
-	class xaddresses
+	class xaddress_registry
 	{
 	public:
-		static bool		create(x_iallocator* alloc, u32 max_addresses, xaddresses*& addr);
-		static void		destroy(xaddresses* addr);
+		static bool		create(x_iallocator* alloc, u32 max_addresses, xaddress_registry*& addr);
+		static void		destroy(xaddress_registry* addr);
 
-		virtual bool	add(xbuffer32 const& addr_id, xbuffer32 const& addr_ep) = 0;
-		virtual bool	get(xbuffer32 const& addr_id, xbuffer32& addr_ep) = 0;
-		virtual bool	rem(xbuffer32 const& addr_id) = 0;
+		virtual bool	add(xbytes32 const& addr_id, xbytes32 const& addr_ep) = 0;
+		virtual bool	get(xbytes32 const& addr_id, xbytes32& addr_ep) = 0;
+		virtual bool	rem(xbytes32 const& addr_id) = 0;
 	};
 }
 

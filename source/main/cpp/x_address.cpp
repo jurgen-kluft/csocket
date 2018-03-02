@@ -34,15 +34,15 @@ namespace xcore
 
 	struct xaddress
 	{
-		xbuffer32		m_id;		// Connection ID
-		xbuffer32		m_ep;		// End-Point information (e.g. 88.128.64.32:5488, IP:Port)
+		xbytes32		m_id;		// Connection ID
+		xbytes32		m_ep;		// End-Point information (e.g. 88.128.64.32:5488, IP:Port)
 		xaddress*		m_next;
 	};
 
-	class xaddresses_imp : public xaddresses
+	class xaddress_registry_imp : public xaddress_registry
 	{
 	protected:
-		friend class xaddresses;
+		friend class xaddress_registry;
 
 		x_iallocator*		m_allocator;
 		u32					m_count;
@@ -51,7 +51,7 @@ namespace xcore
 		xaddress**			m_hashtable;
 
 	public:
-		xaddresses_imp(x_iallocator* alloc)
+		xaddress_registry_imp(x_iallocator* alloc)
 			: m_allocator(alloc) 
 			, m_count(0)
 			, m_size(0)
@@ -70,7 +70,7 @@ namespace xcore
 			m_hashtable = (xaddress**)m_allocator->allocate(m_size * sizeof(void*), sizeof(void*));
 		}
 
-		virtual bool		add(xbuffer32 const& addr_id, xbuffer32 const& addr_ep)
+		virtual bool		add(xbytes32 const& addr_id, xbytes32 const& addr_ep)
 		{
 			xaddress* h = find_by_hash(addr_id);
 			if (h == nullptr)
@@ -85,7 +85,7 @@ namespace xcore
 			return false;
 		}
 
-		virtual bool		get(xbuffer32 const& addr_id, xbuffer32& addr_ep)
+		virtual bool		get(xbytes32 const& addr_id, xbytes32& addr_ep)
 		{
 			xaddress* h = find_by_hash(addr_id);
 			if (h != nullptr)
@@ -95,25 +95,27 @@ namespace xcore
 			return (h != nullptr);
 		}
 
-		virtual bool		rem(xbuffer32 const& addr_id)
+		virtual bool		rem(xbytes32 const& addr_id)
 		{
 			xaddress* h = find_by_hash(addr_id);
 			if (h != nullptr)
 			{
 				remove(h);
 				destroy(h);
+				return true;
 			}
+			return false;
 		}
 
 	protected:
-		u32					hash_to_index(xbuffer32 const & hash) const
+		u32					hash_to_index(xbytes32 const & hash) const
 		{
 			u32 i = (u32)(hash[8]) | (u32)(hash[9] << 8) | (u32)(hash[10] << 16) | (u32)(hash[11] << 24);
 			i = i & m_mask;
 			return i;
 		}
 
-		xaddress*			find_by_hash(xbuffer32 const & hash)
+		xaddress*			find_by_hash(xbytes32 const & hash)
 		{
 			u32 const i = hash_to_index(hash);
 			xaddress* e = m_hashtable[i];
@@ -172,18 +174,17 @@ namespace xcore
 	};
 
 
-	bool		xaddresses::create(x_iallocator* alloc, u32 max_addresses, xaddresses*& addresses)
+	bool		xaddress_registry::create(x_iallocator* alloc, u32 max_addresses, xaddress_registry*& addresses)
 	{
-		void*	mem = alloc->allocate(sizeof(xaddresses_imp), sizeof(void*));
-		xaddresses_imp* addr_imp = new (mem) xaddresses_imp(alloc);
+		xaddress_registry_imp* addr_imp = xnew<xaddress_registry_imp>(xheap(alloc), alloc);
 		addr_imp->init();
 		addresses = addr_imp;
 		return true;
 	}
 
-	void		xaddresses::destroy(xaddresses* addr)
+	void		xaddress_registry::destroy(xaddress_registry* addr)
 	{
-		xaddresses_imp* imp = (xaddresses_imp*)addr;
+		xaddress_registry_imp* imp = (xaddress_registry_imp*)addr;
 		for (u32 i = 0; i < imp->m_size; i++)
 		{
 			xaddress* e = imp->m_hashtable[i];

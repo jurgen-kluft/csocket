@@ -7,17 +7,17 @@
 #endif
 
 #include "xbase/x_buffer.h"
+#include "xbase/x_chars.h"
 
 namespace xcore
 {
 	class x_iallocator;
 
-	class xaddresses;
-
 	struct xaddress;
+	struct xaddresses;
 	struct xmessage;
 
-	typedef	xbuffer32	xsockid;
+	typedef	xbytes32	xsockid;
 
 	class xsocket
 	{
@@ -28,7 +28,7 @@ namespace xcore
 	public:
 		virtual			~xsocket() {}
 
-		virtual void	open(u16 port, const char* name, xsockid const& id, u32 max_open) = 0;
+		virtual void	open(u16 port, xcuchars const& name, xsockid const& id, u32 max_open) = 0;
 		virtual void	close() = 0;
 
 		virtual void	process(xaddresses& open_conns, xaddresses& closed_conns, xaddresses& new_conns, xaddresses& failed_conns, xaddresses& pex_conns) = 0;

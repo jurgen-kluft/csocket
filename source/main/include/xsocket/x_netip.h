@@ -8,6 +8,8 @@
 #pragma once 
 #endif
 
+#include "xbase/x_chars.h"
+
 namespace xcore
 {
 	// ==============================================================================================================================
@@ -30,21 +32,21 @@ namespace xcore
 		inline		xnetip()
 		{ 
 			xbyte	ip[] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-			init(NETIP_NONE, 0, ip);
+			init(NETIP_NONE, 0, xcbuffer(16, ip));
 		}
 
-		inline		xnetip(etype _type, u16 _port, xbyte* _ip)			{ init(_type, _port, _ip); }
+		inline		xnetip(etype _type, u16 _port, xcbuffer& _ip)			{ init(_type, _port, _ip); }
 		inline		xnetip(u16 _port, xbyte _ipv41, xbyte _ipv42, xbyte _ipv43, xbyte _ipv44)
 		{
 			xbyte	ip[] = { _ipv41, _ipv42, _ipv43, _ipv44 };
-			init(NETIP_IPV4, _port, ip);
+			init(NETIP_IPV4, _port, xcbuffer(4, ip));
 		}
 
-		void		init(etype _type, u16 _port, xbyte* _ip)
+		void		init(etype _type, u16 _port, xcbuffer const& _ip)
 		{
 			m_type = _type;
 			m_port = _port;
-			setip(_ip, (u32)_type);
+			setip(_ip);
 		}
 
 		etype		get_type() const									{ return (etype)m_type; }
@@ -60,7 +62,7 @@ namespace xcore
 
 		xbyte		operator [] (s32 index) const						{ return m_ip.ip8[index]; }
 
-		s32			to_string(char* str, u32 max_len, bool omit_port=false) const;
+		s32			to_string(xuchars& str, bool omit_port=false) const;
 
 		bool		is_equal(const xnetip& ip) const
 		{
@@ -80,15 +82,15 @@ namespace xcore
 		}
 
 		u32			get_serialization_size() const						{ return 2 * sizeof(u16) + 8 * sizeof(u16); }
-		void		serialize_to(xbyte* dst, u32 max_len);
-		void		deserialize_from(xbyte const* src, u32 len);
+		void		serialize_to(xbuffer& dst);
+		void		deserialize_from(xcbuffer& src);
 
 	private:
-		void		setip(xbyte* _ip, u32 size)
+		void		setip(xcbuffer const& src)
 		{
 			u32 i = 0;
-			for (; i < size; ++i)
-				m_ip.ip8[i] = _ip[i];
+			for (; i < src.size(); ++i)
+				m_ip.ip8[i] = src[i];
 			for (; i < sizeof(m_ip); ++i)
 				m_ip.ip8[i] = 0;
 		}

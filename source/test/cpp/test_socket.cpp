@@ -19,8 +19,9 @@ UNITTEST_SUITE_BEGIN(xaddress)
 			xsocket* s = gCreateTcpBasedSocket(gTestAllocator);
 			const char* sname = "Jurgen/CNSHAW1334/10.0.22.76:3823/virtuosgames.com";
 			xsockid sid;
-			sid.generate_from(sname);
 			s->open(3823, sname, sid, 32);
+			s->close();
+			delete s;
 		}
 	}
 }
