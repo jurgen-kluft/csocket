@@ -6,5 +6,6 @@ import (
 )
 
 func main() {
+	xcode.Init()
 	xcode.Generate(xsocket.GetPackage())
 }
