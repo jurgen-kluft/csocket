@@ -1,4 +1,4 @@
-// x_socket.h - Core socket functions 
+// x_socket.h - Core socket functions
 #ifndef __XSOCKET_SOCKET_H__
 #define __XSOCKET_SOCKET_H__
 #include "xbase/x_target.h"
@@ -17,34 +17,36 @@ namespace xcore
 	struct xaddresses;
 	struct xmessage;
 
-	typedef	xbytes32	xsockid;
+	typedef xbytes32 xsockid;
 
 	class xsocket
 	{
 	protected:
-		static void		s_attach();
-		static void		s_release();
+		static void s_attach();
+		static void s_release();
 
 	public:
-		virtual			~xsocket() {}
+		virtual ~xsocket()
+		{
+		}
 
-		virtual void	open(u16 port, xcuchars const& name, xsockid const& id, u32 max_open) = 0;
-		virtual void	close() = 0;
+		virtual void open(u16 port, xcuchars const& name, xsockid const& id, u32 max_open) = 0;
+		virtual void close()                                                               = 0;
 
-		virtual void	process(xaddresses& open_conns, xaddresses& closed_conns, xaddresses& new_conns, xaddresses& failed_conns, xaddresses& pex_conns) = 0;
+		virtual void process(xaddresses& open_conns, xaddresses& closed_conns, xaddresses& new_conns, xaddresses& failed_conns, xaddresses& pex_conns) = 0;
 
-		virtual void	connect(xaddress *) = 0;
-		virtual void	disconnect(xaddress *) = 0;
+		virtual void connect(xaddress*)    = 0;
+		virtual void disconnect(xaddress*) = 0;
 
-		virtual bool	alloc_msg(xmessage *& msg) = 0;
-		virtual void	commit_msg(xmessage * msg) = 0;
-		virtual void	free_msg(xmessage * msg) = 0;
+		virtual bool alloc_msg(xmessage*& msg) = 0;
+		virtual void commit_msg(xmessage* msg) = 0;
+		virtual void free_msg(xmessage* msg)   = 0;
 
-		virtual bool	send_msg(xmessage * msg, xaddress * to) = 0;
-		virtual bool	recv_msg(xmessage *& msg, xaddress *& from) = 0;
+		virtual bool send_msg(xmessage* msg, xaddress* to)     = 0;
+		virtual bool recv_msg(xmessage*& msg, xaddress*& from) = 0;
 	};
 
-	xsocket*		gCreateTcpBasedSocket(x_iallocator*);
-}
+	xsocket* gCreateTcpBasedSocket(x_iallocator*);
+}    // namespace xcore
 
 #endif

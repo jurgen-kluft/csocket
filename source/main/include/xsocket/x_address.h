@@ -17,13 +17,13 @@ namespace xcore
 	class xaddress_registry
 	{
 	public:
-		static bool		create(x_iallocator* alloc, u32 max_addresses, xaddress_registry*& addr);
-		static void		destroy(xaddress_registry* addr);
+		static bool create(x_iallocator* alloc, u32 max_addresses, xaddress_registry*& addr);
+		static void destroy(xaddress_registry* addr);
 
-		virtual bool	add(xbytes32 const& addr_id, xbytes32 const& addr_ep) = 0;
-		virtual bool	get(xbytes32 const& addr_id, xbytes32& addr_ep) = 0;
-		virtual bool	rem(xbytes32 const& addr_id) = 0;
+		virtual bool add(xbytes32 const& addr_id, xbytes32 const& addr_ep) = 0;
+		virtual bool get(xbytes32 const& addr_id, xbytes32& addr_ep)       = 0;
+		virtual bool rem(xbytes32 const& addr_id)                          = 0;
 	};
-}
+}    // namespace xcore
 
-#endif	// __XSOCKET_ADDRESS_H__
+#endif    // __XSOCKET_ADDRESS_H__
