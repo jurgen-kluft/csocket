@@ -1,3 +1,3 @@
 # xcore socket library
 
-A cross-platform socket and addressing library 
+A cross-platform socket and addressing library (ALPHA)
