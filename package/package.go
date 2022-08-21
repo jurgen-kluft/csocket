@@ -1,49 +1,49 @@
-package xsocket
+package csocket
 
 import (
-	"github.com/jurgen-kluft/xbase/package"
-	"github.com/jurgen-kluft/xhash/package"
-	"github.com/jurgen-kluft/xtime/package"
-	"github.com/jurgen-kluft/xuuid/package"
-	"github.com/jurgen-kluft/xcode/denv"
-	"github.com/jurgen-kluft/xentry/package"
-	"github.com/jurgen-kluft/xunittest/package"
+	"github.com/jurgen-kluft/cbase/package"
+	"github.com/jurgen-kluft/ccode/denv"
+	"github.com/jurgen-kluft/centry/package"
+	"github.com/jurgen-kluft/chash/package"
+	"github.com/jurgen-kluft/ctime/package"
+	"github.com/jurgen-kluft/cunittest/package"
+	"github.com/jurgen-kluft/cuuid/package"
 )
 
-// GetPackage returns the package object of 'xsocket'
+// GetPackage returns the package object of 'csocket'
 func GetPackage() *denv.Package {
 	// Dependencies
-	xunittestpkg := xunittest.GetPackage()
-	xentrypkg := xentry.GetPackage()
-	xbasepkg := xbase.GetPackage()
-	xhashpkg := xhash.GetPackage()
-	xtimepkg := xtime.GetPackage()
-	xuuidpkg := xuuid.GetPackage()
+	unittestpkg := cunittest.GetPackage()
+	entrypkg := centry.GetPackage()
+	basepkg := cbase.GetPackage()
+	hashpkg := chash.GetPackage()
+	timepkg := ctime.GetPackage()
+	uuidpkg := cuuid.GetPackage()
 
-	// The main (xsocket) package
-	mainpkg := denv.NewPackage("xsocket")
-	mainpkg.AddPackage(xunittestpkg)
-	mainpkg.AddPackage(xentrypkg)
-	mainpkg.AddPackage(xbasepkg)
-	mainpkg.AddPackage(xhashpkg)
-	mainpkg.AddPackage(xtimepkg)
-	mainpkg.AddPackage(xuuidpkg)
+	// The main (csocket) package
+	mainpkg := denv.NewPackage("csocket")
+	mainpkg.AddPackage(unittestpkg)
+	mainpkg.AddPackage(entrypkg)
+	mainpkg.AddPackage(basepkg)
+	mainpkg.AddPackage(hashpkg)
+	mainpkg.AddPackage(timepkg)
+	mainpkg.AddPackage(uuidpkg)
 
-	// 'xsocket' library
-	mainlib := denv.SetupDefaultCppLibProject("xsocket", "github.com\\jurgen-kluft\\xsocket")
-	mainlib.Dependencies = append(mainlib.Dependencies, xbasepkg.GetMainLib())
-	mainlib.Dependencies = append(mainlib.Dependencies, xhashpkg.GetMainLib())
-	mainlib.Dependencies = append(mainlib.Dependencies, xtimepkg.GetMainLib())
-	mainlib.Dependencies = append(mainlib.Dependencies, xuuidpkg.GetMainLib())
+	// 'csocket' library
+	mainlib := denv.SetupDefaultCppLibProject("csocket", "github.com\\jurgen-kluft\\csocket")
+	mainlib.Dependencies = append(mainlib.Dependencies, basepkg.GetMainLib())
+	mainlib.Dependencies = append(mainlib.Dependencies, hashpkg.GetMainLib())
+	mainlib.Dependencies = append(mainlib.Dependencies, timepkg.GetMainLib())
+	mainlib.Dependencies = append(mainlib.Dependencies, uuidpkg.GetMainLib())
 
-	// 'xsocket' unittest project
-	maintest := denv.SetupDefaultCppTestProject("xsocket_test", "github.com\\jurgen-kluft\\xsocket")
-	maintest.Dependencies = append(maintest.Dependencies, xunittestpkg.GetMainLib())
-	maintest.Dependencies = append(maintest.Dependencies, xentrypkg.GetMainLib())
-	maintest.Dependencies = append(maintest.Dependencies, xbasepkg.GetMainLib())
-	maintest.Dependencies = append(maintest.Dependencies, xhashpkg.GetMainLib())
-	maintest.Dependencies = append(maintest.Dependencies, xtimepkg.GetMainLib())
-	maintest.Dependencies = append(maintest.Dependencies, xuuidpkg.GetMainLib())
+	// 'csocket' unittest project
+	maintest := denv.SetupDefaultCppTestProject("csocket_test", "github.com\\jurgen-kluft\\csocket")
+	maintest.Dependencies = append(maintest.Dependencies, unittestpkg.GetMainLib())
+	maintest.Dependencies = append(maintest.Dependencies, entrypkg.GetMainLib())
+	maintest.Dependencies = append(maintest.Dependencies, basepkg.GetMainLib())
+	maintest.Dependencies = append(maintest.Dependencies, hashpkg.GetMainLib())
+	maintest.Dependencies = append(maintest.Dependencies, timepkg.GetMainLib())
+	maintest.Dependencies = append(maintest.Dependencies, uuidpkg.GetMainLib())
 	maintest.Dependencies = append(maintest.Dependencies, mainlib)
 
 	mainpkg.AddMainLib(mainlib)
