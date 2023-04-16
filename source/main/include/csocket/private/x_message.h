@@ -54,7 +54,7 @@ namespace xcore
 			return msg;
 		}
 
-		XCORE_CLASS_PLACEMENT_NEW_DELETE
+		DCORE_CLASS_PLACEMENT_NEW_DELETE
 
 		xaddress*			m_remote;
 		xmessage_node*		m_next;

@@ -19,7 +19,7 @@ namespace xcore
 		{
 		}
 
-		XCORE_CLASS_PLACEMENT_NEW_DELETE
+		DCORE_CLASS_PLACEMENT_NEW_DELETE
 
 		xbinary_reader get_reader() const;
 		xbinary_writer get_writer() const;

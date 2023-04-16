@@ -56,7 +56,7 @@ namespace xcore
 		{
 		}
 
-		XCORE_CLASS_PLACEMENT_NEW_DELETE
+		DCORE_CLASS_PLACEMENT_NEW_DELETE
 
 		void init()
 		{

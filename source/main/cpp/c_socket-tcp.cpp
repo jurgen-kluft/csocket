@@ -436,7 +436,7 @@ namespace xcore
 		virtual bool send_msg(xmessage* msg, xaddress* to);
 		virtual bool recv_msg(xmessage*& msg, xaddress*& from);
 
-		XCORE_CLASS_PLACEMENT_NEW_DELETE
+		DCORE_CLASS_PLACEMENT_NEW_DELETE
 	};
 
 	xsocket* gCreateTcpBasedSocket(x_iallocator* allocator)
