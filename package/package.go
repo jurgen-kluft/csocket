@@ -1,11 +1,12 @@
 package csocket
 
 import (
-	"github.com/jurgen-kluft/cbase/package"
-	"github.com/jurgen-kluft/ccode/denv"
-	"github.com/jurgen-kluft/chash/package"
-	"github.com/jurgen-kluft/ctime/package"
-	"github.com/jurgen-kluft/cunittest/package"
+	cbase "github.com/jurgen-kluft/cbase/package"
+	denv "github.com/jurgen-kluft/ccode/denv"
+	chash "github.com/jurgen-kluft/chash/package"
+	ctime "github.com/jurgen-kluft/ctime/package"
+	cunittest "github.com/jurgen-kluft/cunittest/package"
+	cuuid "github.com/jurgen-kluft/cuuid/package"
 )
 
 // GetPackage returns the package object of 'csocket'
