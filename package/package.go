@@ -3,18 +3,15 @@ package csocket
 import (
 	"github.com/jurgen-kluft/cbase/package"
 	"github.com/jurgen-kluft/ccode/denv"
-	"github.com/jurgen-kluft/centry/package"
 	"github.com/jurgen-kluft/chash/package"
 	"github.com/jurgen-kluft/ctime/package"
 	"github.com/jurgen-kluft/cunittest/package"
-	"github.com/jurgen-kluft/cuuid/package"
 )
 
 // GetPackage returns the package object of 'csocket'
 func GetPackage() *denv.Package {
 	// Dependencies
 	unittestpkg := cunittest.GetPackage()
-	entrypkg := centry.GetPackage()
 	basepkg := cbase.GetPackage()
 	hashpkg := chash.GetPackage()
 	timepkg := ctime.GetPackage()
@@ -23,7 +20,6 @@ func GetPackage() *denv.Package {
 	// The main (csocket) package
 	mainpkg := denv.NewPackage("csocket")
 	mainpkg.AddPackage(unittestpkg)
-	mainpkg.AddPackage(entrypkg)
 	mainpkg.AddPackage(basepkg)
 	mainpkg.AddPackage(hashpkg)
 	mainpkg.AddPackage(timepkg)
@@ -39,7 +35,6 @@ func GetPackage() *denv.Package {
 	// 'csocket' unittest project
 	maintest := denv.SetupDefaultCppTestProject("csocket_test", "github.com\\jurgen-kluft\\csocket")
 	maintest.Dependencies = append(maintest.Dependencies, unittestpkg.GetMainLib())
-	maintest.Dependencies = append(maintest.Dependencies, entrypkg.GetMainLib())
 	maintest.Dependencies = append(maintest.Dependencies, basepkg.GetMainLib())
 	maintest.Dependencies = append(maintest.Dependencies, hashpkg.GetMainLib())
 	maintest.Dependencies = append(maintest.Dependencies, timepkg.GetMainLib())
