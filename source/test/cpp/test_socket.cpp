@@ -3,9 +3,9 @@
 
 #include "xunittest\xunittest.h"
 
-using namespace xcore;
+using namespace ccore;
 
-extern xcore::x_iallocator* gTestAllocator;
+extern ccore::x_iallocator* gTestAllocator;
 
 UNITTEST_SUITE_BEGIN(xaddress)
 {

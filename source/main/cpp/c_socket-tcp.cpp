@@ -37,7 +37,7 @@ typedef void raw_type;    // Type used for raw data on this platform
 
 #include <errno.h>    // For errno
 
-namespace xcore
+namespace ccore
 {
 	// Forward declares
 	class xsocket_tcp;
@@ -823,4 +823,4 @@ namespace xcore
 		}
 	}
 
-}    // namespace xcore
+}    // namespace ccore

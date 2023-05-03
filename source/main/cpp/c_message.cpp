@@ -3,7 +3,7 @@
 #include "xsocket/x_message.h"
 #include "xsocket/private/x_message.h"
 
-namespace xcore
+namespace ccore
 {
 
 	

@@ -10,7 +10,7 @@
 
 #include "xbase/x_allocator.h"
 
-namespace xcore
+namespace ccore
 {
 	typedef u32		socket_t;
 	

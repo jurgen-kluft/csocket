@@ -4,7 +4,7 @@
 
 #include "xsocket\x_netip.h"
 
-namespace xcore
+namespace ccore
 {
 	s32 xnetip::to_string(xuchars& str, bool omit_port) const
 	{
@@ -62,4 +62,4 @@ namespace xcore
 			m_ip.ip8[i] = src[4 + i];
 	}
 
-}    // namespace xcore
+}    // namespace ccore

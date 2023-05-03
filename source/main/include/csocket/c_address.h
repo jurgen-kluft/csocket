@@ -10,7 +10,7 @@
 
 #include "xbase/x_buffer.h"
 
-namespace xcore
+namespace ccore
 {
 	struct xaddress;
 
@@ -24,6 +24,6 @@ namespace xcore
 		virtual bool get(xbytes32 const& addr_id, xbytes32& addr_ep)       = 0;
 		virtual bool rem(xbytes32 const& addr_id)                          = 0;
 	};
-}    // namespace xcore
+}    // namespace ccore
 
 #endif    // __XSOCKET_ADDRESS_H__

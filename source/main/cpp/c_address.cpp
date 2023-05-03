@@ -29,7 +29,7 @@ typedef void raw_type;    // Type used for raw data on this platform
 
 #include <errno.h>    // For errno
 
-namespace xcore
+namespace ccore
 {
 	typedef xdigest_engine_skein256 xaddr_hasher;
 
@@ -194,4 +194,4 @@ namespace xcore
 		imp->m_allocator->deallocate(imp);
 	};
 
-}    // namespace xcore
+}    // namespace ccore

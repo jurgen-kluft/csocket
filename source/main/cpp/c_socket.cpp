@@ -26,7 +26,7 @@ typedef void raw_type;    // Type used for raw data on this platform
 
 #include <errno.h>    // For errno
 
-namespace xcore
+namespace ccore
 {
 	class xsock_init
 	{
@@ -98,4 +98,4 @@ namespace xcore
 		xsock_init::release();
 	}
 
-}    // namespace xcore
+}    // namespace ccore

@@ -11,7 +11,7 @@
 #include "xbase/x_allocator.h"
 #include "xsocket/x_message.h"
 
-namespace xcore
+namespace ccore
 {
 	struct xaddress;
 

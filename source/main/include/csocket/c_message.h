@@ -11,7 +11,7 @@
 #include "xbase/x_allocator.h"
 #include "xbase/x_buffer.h"
 
-namespace xcore
+namespace ccore
 {
 	struct xmessage
 	{
@@ -29,6 +29,6 @@ namespace xcore
 		xbyte* m_data;
 	};
 
-}    // namespace xcore
+}    // namespace ccore
 
 #endif    ///< __XSOCKET_MESSAGE_H__

@@ -31,7 +31,7 @@ typedef void raw_type;    // Type used for raw data on this platform
 
 #include <errno.h>    // For errno
 
-namespace xcore
+namespace ccore
 {
 	s32 is_error(s32 n)
 	{
@@ -132,4 +132,4 @@ namespace xcore
 		return n == 0 ? 0 : 1;
 	}
 
-}    // namespace xcore
+}    // namespace ccore

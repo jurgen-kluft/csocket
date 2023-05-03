@@ -9,7 +9,7 @@
 #include "xbase/x_buffer.h"
 #include "xbase/x_chars.h"
 
-namespace xcore
+namespace ccore
 {
 	class x_iallocator;
 
@@ -47,6 +47,6 @@ namespace xcore
 	};
 
 	xsocket* gCreateTcpBasedSocket(x_iallocator*);
-}    // namespace xcore
+}    // namespace ccore
 
 #endif
