@@ -27,19 +27,19 @@ func GetPackage() *denv.Package {
 	mainpkg.AddPackage(uuidpkg)
 
 	// 'csocket' library
-	mainlib := denv.SetupDefaultCppLibProject("csocket", "github.com\\jurgen-kluft\\csocket")
-	mainlib.Dependencies = append(mainlib.Dependencies, basepkg.GetMainLib())
-	mainlib.Dependencies = append(mainlib.Dependencies, hashpkg.GetMainLib())
-	mainlib.Dependencies = append(mainlib.Dependencies, timepkg.GetMainLib())
-	mainlib.Dependencies = append(mainlib.Dependencies, uuidpkg.GetMainLib())
+	mainlib := denv.SetupCppLibProject("csocket", "github.com\\jurgen-kluft\\csocket")
+	mainlib.AddDependencies(basepkg.GetMainLib()...)
+	mainlib.AddDependencies(hashpkg.GetMainLib()...)
+	mainlib.AddDependencies(timepkg.GetMainLib()...)
+	mainlib.AddDependencies(uuidpkg.GetMainLib()...)
 
 	// 'csocket' unittest project
 	maintest := denv.SetupDefaultCppTestProject("csocket_test", "github.com\\jurgen-kluft\\csocket")
-	maintest.Dependencies = append(maintest.Dependencies, unittestpkg.GetMainLib())
-	maintest.Dependencies = append(maintest.Dependencies, basepkg.GetMainLib())
-	maintest.Dependencies = append(maintest.Dependencies, hashpkg.GetMainLib())
-	maintest.Dependencies = append(maintest.Dependencies, timepkg.GetMainLib())
-	maintest.Dependencies = append(maintest.Dependencies, uuidpkg.GetMainLib())
+	maintest.AddDependencies(unittestpkg.GetMainLib()...)
+	maintest.AddDependencies(basepkg.GetMainLib()...)
+	maintest.AddDependencies(hashpkg.GetMainLib()...)
+	maintest.AddDependencies(timepkg.GetMainLib()...)
+	maintest.AddDependencies(uuidpkg.GetMainLib()...)
 	maintest.Dependencies = append(maintest.Dependencies, mainlib)
 
 	mainpkg.AddMainLib(mainlib)
