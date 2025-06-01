@@ -9,40 +9,51 @@ import (
 	cuuid "github.com/jurgen-kluft/cuuid/package"
 )
 
-// GetPackage returns the package object of 'csocket'
+const (
+	repo_path = "github.com\\jurgen-kluft"
+	repo_name = "csocket"
+)
+
 func GetPackage() *denv.Package {
-	// Dependencies
-	unittestpkg := cunittest.GetPackage()
-	basepkg := cbase.GetPackage()
-	hashpkg := chash.GetPackage()
-	timepkg := ctime.GetPackage()
-	uuidpkg := cuuid.GetPackage()
+	name := repo_name
 
-	// The main (csocket) package
-	mainpkg := denv.NewPackage("github.com\\jurgen-kluft", "csocket")
-	mainpkg.AddPackage(unittestpkg)
-	mainpkg.AddPackage(basepkg)
-	mainpkg.AddPackage(hashpkg)
-	mainpkg.AddPackage(timepkg)
-	mainpkg.AddPackage(uuidpkg)
+	// dependencies
+	cunittestpkg := cunittest.GetPackage()
+	cbasepkg := cbase.GetPackage()
+	chashpkg := chash.GetPackage()
+	ctimepkg := ctime.GetPackage()
+	cuuidpkg := cuuid.GetPackage()
 
-	// 'csocket' library
-	mainlib := denv.SetupCppLibProject(mainpkg, "csocket")
-	mainlib.AddDependencies(basepkg.GetMainLib()...)
-	mainlib.AddDependencies(hashpkg.GetMainLib()...)
-	mainlib.AddDependencies(timepkg.GetMainLib()...)
-	mainlib.AddDependencies(uuidpkg.GetMainLib()...)
+	// main package
+	mainpkg := denv.NewPackage(repo_path, repo_name)
+	mainpkg.AddPackage(cunittestpkg)
+	mainpkg.AddPackage(cbasepkg)
+	mainpkg.AddPackage(chashpkg)
+	mainpkg.AddPackage(ctimepkg)
+	mainpkg.AddPackage(cuuidpkg)
 
-	// 'csocket' unittest project
-	maintest := denv.SetupCppTestProject(mainpkg, "csocket_test")
-	maintest.AddDependencies(unittestpkg.GetMainLib()...)
-	maintest.AddDependencies(basepkg.GetMainLib()...)
-	maintest.AddDependencies(hashpkg.GetMainLib()...)
-	maintest.AddDependencies(timepkg.GetMainLib()...)
-	maintest.AddDependencies(uuidpkg.GetMainLib()...)
-	maintest.AddDependency(mainlib)
+	// main library
+	mainlib := denv.SetupCppLibProject(mainpkg, name)
+	mainlib.AddDependencies(cbasepkg.GetMainLib()...)
+	mainlib.AddDependencies(chashpkg.GetMainLib()...)
+	mainlib.AddDependencies(ctimepkg.GetMainLib()...)
+	mainlib.AddDependencies(cuuidpkg.GetMainLib()...)
+
+	// test library
+	testlib := denv.SetupCppTestLibProject(mainpkg, name)
+	mainlib.AddDependencies(cbasepkg.GetTestLib()...)
+	mainlib.AddDependencies(chashpkg.GetTestLib()...)
+	mainlib.AddDependencies(ctimepkg.GetTestLib()...)
+	mainlib.AddDependencies(cuuidpkg.GetTestLib()...)
+	testlib.AddDependencies(cunittestpkg.GetTestLib()...)
+
+	// unittest project
+	maintest := denv.SetupCppTestProject(mainpkg, name)
+	maintest.AddDependencies(cunittestpkg.GetMainLib()...)
+	maintest.AddDependency(testlib)
 
 	mainpkg.AddMainLib(mainlib)
+	mainpkg.AddTestLib(testlib)
 	mainpkg.AddUnittest(maintest)
 	return mainpkg
 }
