@@ -1,21 +1,19 @@
-//==============================================================================
-//  x_netip.h
-//==============================================================================
-#ifndef __XSOCKET_NETIP_H__
-#define __XSOCKET_NETIP_H__
-#include "xbase/x_target.h"
+#ifndef __CSOCKET_NETIP_H__
+#define __CSOCKET_NETIP_H__
+#include "ccore/c_target.h"
 #ifdef USE_PRAGMA_ONCE
 #pragma once
 #endif
 
-#include "xbase/x_chars.h"
+#include "cbase/c_buffer.h"
+#include "cbase/c_runes.h"
 
-namespace ccore
+namespace ncore
 {
 	// ==============================================================================================================================
 	// ==============================================================================================================================
 	// ==============================================================================================================================
-	struct xnetip
+	struct netip_t
 	{
 		enum econf
 		{
@@ -29,23 +27,24 @@ namespace ccore
 			NETIP_IPV6 = 16,
 		};
 
-		inline xnetip()
+		inline netip_t()
 		{
-			xbyte ip[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-			init(NETIP_NONE, 0, xcbuffer(16, ip));
+			byte ip[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            cbuffer_t b(ip, ip+16);
+			init(NETIP_NONE, 0, b);
 		}
 
-		inline xnetip(etype _type, u16 _port, xcbuffer& _ip)
+		inline netip_t(etype _type, u16 _port, cbuffer_t& _ip)
 		{
 			init(_type, _port, _ip);
 		}
-		inline xnetip(u16 _port, xbyte _ipv41, xbyte _ipv42, xbyte _ipv43, xbyte _ipv44)
+		inline netip_t(u16 _port, byte _ipv41, byte _ipv42, byte _ipv43, byte _ipv44)
 		{
-			xbyte ip[] = {_ipv41, _ipv42, _ipv43, _ipv44};
-			init(NETIP_IPV4, _port, xcbuffer(4, ip));
+			byte ip[] = {_ipv41, _ipv42, _ipv43, _ipv44};
+			init(NETIP_IPV4, _port, cbuffer_t(ip, ip+4));
 		}
 
-		void init(etype _type, u16 _port, xcbuffer const& _ip)
+		void init(etype _type, u16 _port, cbuffer_t const& _ip)
 		{
 			m_type = _type;
 			m_port = _port;
@@ -75,23 +74,23 @@ namespace ccore
 			return (etype)m_type == NETIP_IPV6;
 		}
 
-		bool operator==(const xnetip& _other) const
+		bool operator==(const netip_t& _other) const
 		{
 			return is_equal(_other);
 		}
-		bool operator!=(const xnetip& _other) const
+		bool operator!=(const netip_t& _other) const
 		{
 			return !is_equal(_other);
 		}
 
-		xbyte operator[](s32 index) const
+		byte operator[](s32 index) const
 		{
 			return m_ip.ip8[index];
 		}
 
-		s32 to_string(xuchars& str, bool omit_port = false) const;
+		s32 to_string(runes_t& str, bool omit_port = false) const;
 
-		bool is_equal(const xnetip& ip) const
+		bool is_equal(const netip_t& ip) const
 		{
 			if (m_type == ip.m_type)
 			{
@@ -112,17 +111,15 @@ namespace ccore
 		{
 			return 2 * sizeof(u16) + 8 * sizeof(u16);
 		}
-		void serialize_to(xbuffer& dst);
-		void deserialize_from(xcbuffer& src);
+		void serialize_to(buffer_t& dst);
+		void deserialize_from(cbuffer_t& src);
 
 	private:
-		void setip(xcbuffer const& src)
+		void setip(cbuffer_t const& src)
 		{
-			u32 i = 0;
-			for (; i < src.size(); ++i)
-				m_ip.ip8[i] = src[i];
-			for (; i < sizeof(m_ip); ++i)
-				m_ip.ip8[i] = 0;
+            buffer_t ipb(m_ip.ip8, m_ip.ip8 + sizeof(m_ip));
+            ipb.copy_from(src);
+            ipb.fill_rest(0);
 		}
 
 		u16 m_type;
@@ -133,6 +130,6 @@ namespace ccore
 		};
 		ip m_ip;
 	};
-}    // namespace ccore
+}    // namespace ncore
 
-#endif    ///< __XSOCKET_NETIP_H__
+#endif    ///< __CSOCKET_NETIP_H__

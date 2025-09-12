@@ -1,11 +1,14 @@
 package main
 
 import (
-	"github.com/jurgen-kluft/ccode"
-	"github.com/jurgen-kluft/csocket/package"
+	ccode "github.com/jurgen-kluft/ccode"
+	cpkg "github.com/jurgen-kluft/csocket/package"
 )
 
 func main() {
-	ccode.Init()
-	ccode.Generate(csocket.GetPackage())
+	if ccode.Init() {
+		pkg := cpkg.GetPackage()
+		ccode.GenerateFiles(pkg)
+		ccode.Generate(pkg)
+	}
 }

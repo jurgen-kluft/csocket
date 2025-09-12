@@ -1,34 +1,34 @@
-//==============================================================================
-//  x_message.h
-//==============================================================================
-#ifndef __XSOCKET_MESSAGE_H__
-#define __XSOCKET_MESSAGE_H__
-#include "xbase/x_target.h"
+#ifndef __CSOCKET_MESSAGE_H__
+#define __CSOCKET_MESSAGE_H__
+#include "ccore/c_target.h"
 #ifdef USE_PRAGMA_ONCE
-#pragma once
+#    pragma once
 #endif
 
-#include "xbase/x_allocator.h"
-#include "xbase/x_buffer.h"
+#include "cbase/c_allocator.h"
+#include "cbase/c_buffer.h"
 
-namespace ccore
+namespace ncore
 {
-	struct xmessage
-	{
-		inline xmessage() : m_max(0), m_size(0), m_data(NULL)
-		{
-		}
+    struct message_t
+    {
+        inline message_t()
+            : m_max(0)
+            , m_size(0)
+            , m_data(NULL)
+        {
+        }
 
-		DCORE_CLASS_PLACEMENT_NEW_DELETE
+        DCORE_CLASS_PLACEMENT_NEW_DELETE
 
-		xbinary_reader get_reader() const;
-		xbinary_writer get_writer() const;
+        binary_reader_t get_reader() const;
+        binary_writer_t get_writer() const;
 
-		u32    m_max;
-		u32    m_size;
-		xbyte* m_data;
-	};
+        u32   m_max;
+        u32   m_size;
+        byte *m_data;
+    };
 
-}    // namespace ccore
+}  // namespace ncore
 
-#endif    ///< __XSOCKET_MESSAGE_H__
+#endif  ///< __CSOCKET_MESSAGE_H__

@@ -1,27 +1,27 @@
-#include "xbase\x_target.h"
-#include "xsocket\x_socket.h"
+#include "ccore/c_target.h"
+#include "csocket/c_socket.h"
 
-#include "xunittest\xunittest.h"
+#include "cunittest/cunittest.h"
 
-using namespace ccore;
+using namespace ncore;
 
-extern ccore::x_iallocator* gTestAllocator;
-
-UNITTEST_SUITE_BEGIN(xaddress)
+UNITTEST_SUITE_BEGIN(address_t)
 {
 	UNITTEST_FIXTURE(main)
 	{
 		UNITTEST_FIXTURE_SETUP() {}
 		UNITTEST_FIXTURE_TEARDOWN() {}
 
+        UNITTEST_ALLOCATOR;
+
 		UNITTEST_TEST(new_socket)
 		{
-			xsocket* s = gCreateTcpBasedSocket(gTestAllocator);
-			const char* sname = "Jurgen/CNSHAW1334/10.0.22.76:3823/virtuosgames.com";
-			xsockid sid;
+			socket_t* s = gCreateTcpBasedSocket(Allocator);
+			crunes_t sname = make_crunes("Jurgen/CNSHAW1334/10.0.22.76:3823/virtuosgames.com");
+			sockid_t sid;
 			s->open(3823, sname, sid, 32);
 			s->close();
-			delete s;
+			gDestroyTcpBasedSocket(s);
 		}
 	}
 }

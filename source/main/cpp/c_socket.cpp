@@ -1,8 +1,7 @@
-// x_socket_tcp.cpp - Core socket functions
-#include "xsocket/x_socket.h"
-#include "xbase/x_debug.h"
-#include "xbase/x_target.h"
-#include "xsocket/x_address.h"
+#include "csocket/c_socket.h"
+#include "cbase/c_debug.h"
+#include "ccore/c_target.h"
+#include "csocket/c_address.h"
 
 
 #ifdef PLATFORM_PC
@@ -17,7 +16,7 @@ typedef char raw_type;    // Type used for raw data on this platform
 #include <cstring>         // For memset()
 #include <netdb.h>         // For gethostbyname()
 #include <netinet/in.h>    // For sockaddr_in
-#include <stdio>
+//#include <stdio>
 #include <sys/socket.h>    // For socket(), connect(), send(), and recv()
 #include <sys/types.h>     // For data types
 #include <unistd.h>        // For close()
@@ -26,21 +25,17 @@ typedef void raw_type;    // Type used for raw data on this platform
 
 #include <errno.h>    // For errno
 
-namespace ccore
+namespace ncore
 {
-	class xsock_init
+	namespace nsock_init
 	{
-	public:
 		static bool attach();
 		static bool release();
 
-	protected:
-		static s32 s_initialized;
+		static s32 s_initialized = 0;
 	};
 
-	s32 xsock_init::s_initialized = 0;
-
-	bool xsock_init::attach()
+	bool nsock_init::attach()
 	{
 		bool result = true;
 		if (s_initialized == 0)
@@ -61,7 +56,7 @@ namespace ccore
 		return result;
 	}
 
-	bool xsock_init::release()
+	bool nsock_init::release()
 	{
 		bool result = false;
 		s_initialized -= 1;
@@ -89,13 +84,13 @@ namespace ccore
 		return result;
 	}
 
-	void xsocket::s_attach()
+	void socket_t::s_attach()
 	{
-		xsock_init::attach();
+		nsock_init::attach();
 	}
-	void xsocket::s_release()
+	void socket_t::s_release()
 	{
-		xsock_init::release();
+		nsock_init::release();
 	}
 
-}    // namespace ccore
+}    // namespace ncore

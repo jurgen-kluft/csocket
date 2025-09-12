@@ -1,52 +1,50 @@
-// x_socket.h - Core socket functions
-#ifndef __XSOCKET_SOCKET_H__
-#define __XSOCKET_SOCKET_H__
-#include "xbase/x_target.h"
+#ifndef __CSOCKET_SOCKET_H__
+#define __CSOCKET_SOCKET_H__
+#include "ccore/c_target.h"
 #ifdef USE_PRAGMA_ONCE
-#pragma once
+#    pragma once
 #endif
 
-#include "xbase/x_buffer.h"
-#include "xbase/x_chars.h"
+#include "cbase/c_buffer.h"
+#include "cbase/c_runes.h"
 
-namespace ccore
+namespace ncore
 {
-	class x_iallocator;
+    class alloc_t;
 
-	struct xaddress;
-	struct xaddresses;
-	struct xmessage;
+    struct address_t;
+    struct addresses_t;
+    struct message_t;
 
-	typedef xbytes32 xsockid;
+    typedef data_t<32> sockid_t;
 
-	class xsocket
-	{
-	protected:
-		static void s_attach();
-		static void s_release();
+    class socket_t
+    {
+    protected:
+        static void s_attach();
+        static void s_release();
 
-	public:
-		virtual ~xsocket()
-		{
-		}
+    public:
+        virtual ~socket_t() {}
 
-		virtual void open(u16 port, xcuchars const& name, xsockid const& id, u32 max_open) = 0;
-		virtual void close()                                                               = 0;
+        virtual void open(u16 port, crunes_t const& name, sockid_t const& id, u32 max_open) = 0;
+        virtual void close()                                                                = 0;
 
-		virtual void process(xaddresses& open_conns, xaddresses& closed_conns, xaddresses& new_conns, xaddresses& failed_conns, xaddresses& pex_conns) = 0;
+        virtual void process(addresses_t& open_conns, addresses_t& closed_conns, addresses_t& new_conns, addresses_t& failed_conns, addresses_t& pex_conns) = 0;
 
-		virtual void connect(xaddress*)    = 0;
-		virtual void disconnect(xaddress*) = 0;
+        virtual void connect(address_t*)    = 0;
+        virtual void disconnect(address_t*) = 0;
 
-		virtual bool alloc_msg(xmessage*& msg) = 0;
-		virtual void commit_msg(xmessage* msg) = 0;
-		virtual void free_msg(xmessage* msg)   = 0;
+        virtual bool alloc_msg(message_t*& msg) = 0;
+        virtual void commit_msg(message_t* msg) = 0;
+        virtual void free_msg(message_t* msg)   = 0;
 
-		virtual bool send_msg(xmessage* msg, xaddress* to)     = 0;
-		virtual bool recv_msg(xmessage*& msg, xaddress*& from) = 0;
-	};
+        virtual bool send_msg(message_t* msg, address_t* to)     = 0;
+        virtual bool recv_msg(message_t*& msg, address_t*& from) = 0;
+    };
 
-	xsocket* gCreateTcpBasedSocket(x_iallocator*);
-}    // namespace ccore
+    socket_t* gCreateTcpBasedSocket(alloc_t*);
+    void      gDestroyTcpBasedSocket(socket_t*);
+}  // namespace ncore
 
 #endif

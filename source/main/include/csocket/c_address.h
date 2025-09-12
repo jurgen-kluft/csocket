@@ -1,29 +1,27 @@
-//==============================================================================
-//  x_address.h
-//==============================================================================
-#ifndef __XSOCKET_ADDRESS_H__
-#define __XSOCKET_ADDRESS_H__
-#include "xbase/x_target.h"
+#ifndef __CSOCKET_ADDRESS_H__
+#define __CSOCKET_ADDRESS_H__
+#include "ccore/c_target.h"
 #ifdef USE_PRAGMA_ONCE
-#pragma once
+#    pragma once
 #endif
 
-#include "xbase/x_buffer.h"
+#include "cbase/c_buffer.h"
 
-namespace ccore
+namespace ncore
 {
-	struct xaddress;
+    struct address_t;
+    typedef data_t<32> address_id_t;
 
-	class xaddress_registry
-	{
-	public:
-		static bool create(x_iallocator* alloc, u32 max_addresses, xaddress_registry*& addr);
-		static void destroy(xaddress_registry* addr);
+    class address_registry_t
+    {
+    public:
+        static bool create(alloc_t* alloc, u32 max_addresses, address_registry_t*& addr);
+        static void destroy(address_registry_t* addr);
 
-		virtual bool add(xbytes32 const& addr_id, xbytes32 const& addr_ep) = 0;
-		virtual bool get(xbytes32 const& addr_id, xbytes32& addr_ep)       = 0;
-		virtual bool rem(xbytes32 const& addr_id)                          = 0;
-	};
-}    // namespace ccore
+        virtual bool add(address_id_t const& addr_id, address_id_t const& addr_ep) = 0;
+        virtual bool get(address_id_t const& addr_id, address_id_t& addr_ep)       = 0;
+        virtual bool rem(address_id_t const& addr_id)                              = 0;
+    };
+}  // namespace ncore
 
-#endif    // __XSOCKET_ADDRESS_H__
+#endif  // __CSOCKET_ADDRESS_H__

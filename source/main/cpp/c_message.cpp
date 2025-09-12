@@ -1,10 +1,9 @@
-#include "xbase/x_target.h"
-#include "xbase/x_debug.h"
-#include "xsocket/x_message.h"
-#include "xsocket/private/x_message.h"
+#include "ccore/c_target.h"
+#include "cbase/c_debug.h"
+#include "csocket/c_message.h"
+#include "csocket/private/c_message.h"
 
-namespace ccore
+namespace ncore
 {
 
-	
-        }
+}
